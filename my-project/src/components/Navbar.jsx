@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle';
-
+import Search from './Search';
 
 const Navbar = () => {
   return (
@@ -10,7 +10,7 @@ const Navbar = () => {
           FilmExplorer
         </Link>
         <div className="flex items-center space-x-4">
-          
+          <Search />
           <ThemeToggle />
         </div>
       </div>
