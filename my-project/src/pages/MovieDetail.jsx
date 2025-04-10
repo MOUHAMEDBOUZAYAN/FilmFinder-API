@@ -1,20 +1,31 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { getMovieDetails } from '../services/api';
 import Loader from '../components/Loader';
+import { ArrowLeftIcon } from '@heroicons/react/24/solid';
 
 const MovieDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [movie, setMovie] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchMovie = async () => {
       try {
+        setLoading(true);
+        setError(null);
         const data = await getMovieDetails(id);
+
+        if (!data || data.Response === 'False') {
+          throw new Error('Movie not found');
+        }
+
         setMovie(data);
       } catch (error) {
-        console.error(error);
+        console.error('Error:', error);
+        setError('Failed to load movie details.');
       } finally {
         setLoading(false);
       }
@@ -24,76 +35,80 @@ const MovieDetail = () => {
   }, [id]);
 
   if (loading) return <Loader />;
-  if (!movie) return <div className="text-center py-10">Film non trouvé</div>;
+  if (error) return (
+    <div className="container mx-auto px-4 py-20 text-center">
+      <div className="text-red-500 mb-4">{error}</div>
+      <button
+        onClick={() => navigate(-1)}
+        className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg"
+      >
+        Go Back
+      </button>
+    </div>
+  );
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center text-yellow-500 hover:text-yellow-600 mb-6"
+      >
+        <ArrowLeftIcon className="h-5 w-5 mr-2" />
+        Back to Movies
+      </button>
+
       <div className="flex flex-col md:flex-row gap-8">
         <div className="md:w-1/3">
           <img
             src={
-              movie.poster_path
-                ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+              movie.Poster && movie.Poster !== 'N/A'
+                ? movie.Poster
                 : 'https://via.placeholder.com/500x750?text=No+Poster'
             }
-            alt={movie.title}
-            className="rounded-lg shadow-lg w-full"
+            alt={movie.Title || 'Poster'}
+            className="rounded-lg shadow-lg w-full h-auto object-cover"
           />
         </div>
+
         <div className="md:w-2/3">
           <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">
-            {movie.title}
+            {movie.Title}
           </h1>
-          <div className="flex items-center space-x-4 mb-4">
-            <span className="bg-yellow-500 text-white px-2 py-1 rounded text-sm">
-              {movie.vote_average.toFixed(1)}/10
-            </span>
-            <span className="text-gray-600 dark:text-gray-300">
-              {movie.release_date.split('-')[0]} • {movie.runtime} min
-            </span>
+
+          <div className="flex flex-wrap items-center gap-4 mb-4 text-gray-600 dark:text-gray-300">
+            <span>{movie.Year}</span>
+            {movie.Runtime && <span>{movie.Runtime}</span>}
+            {movie.Rated && <span>{movie.Rated}</span>}
           </div>
-          <div className="flex flex-wrap gap-2 mb-6">
-            {movie.genres.map((genre) => (
-              <span
-                key={genre.id}
-                className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-1 rounded-full text-sm"
-              >
-                {genre.name}
-              </span>
-            ))}
-          </div>
+
+          {movie.Genre && (
+            <div className="flex flex-wrap gap-2 mb-6">
+              {movie.Genre.split(',').map((genre) => (
+                <span
+                  key={genre}
+                  className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-1 rounded-full text-sm"
+                >
+                  {genre}
+                </span>
+              ))}
+            </div>
+          )}
+
           <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
             Synopsis
           </h2>
           <p className="text-gray-600 dark:text-gray-300 mb-6">
-            {movie.overview || 'Aucun synopsis disponible.'}
+            {movie.Plot || 'No plot available.'}
           </p>
-          {movie.credits?.cast.length > 0 && (
+
+          {movie.Actors && (
             <>
               <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
-                Acteurs principaux
+                Cast
               </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                {movie.credits.cast.slice(0, 4).map((actor) => (
-                  <div key={actor.id} className="text-center">
-                    <img
-                      src={
-                        actor.profile_path
-                          ? `https://image.tmdb.org/t/p/w200${actor.profile_path}`
-                          : 'https://via.placeholder.com/200x300?text=No+Image'
-                      }
-                      alt={actor.name}
-                      className="w-full h-40 object-cover rounded-lg mb-2"
-                    />
-                    <p className="text-sm font-medium text-gray-800 dark:text-white">
-                      {actor.name}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {actor.character}
-                    </p>
-                  </div>
-                ))}
-              </div>
+              <p className="text-gray-600 dark:text-gray-300">
+                {movie.Actors}
+              </p>
             </>
           )}
         </div>
