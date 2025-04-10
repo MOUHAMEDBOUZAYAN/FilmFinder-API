@@ -1,31 +1,32 @@
 import { Link } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle';
 import Search from './Search';
-import { FilmIcon } from '@heroicons/react/24/solid'; // Icône pour le logo mobile
+import { FaFilm } from 'react-icons/fa';
 
 const Navbar = () => {
   return (
-    <nav className="bg-white dark:bg-gray-800 shadow-lg sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        {/* Logo - Texte sur desktop, Icône sur mobile */}
-        <Link 
-          to="/" 
-          className="flex items-center space-x-2"
-          aria-label="Accueil"
-        >
-          <FilmIcon className="h-6 w-6 text-yellow-500 block md:hidden" /> {/* Visible uniquement sur mobile */}
-          <span className="text-xl font-bold text-gray-800 dark:text-white hidden md:block"> {/* Caché sur mobile */}
-            FilmExplorer
-          </span>
-        </Link>
+    <nav className="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-50">
+      <div className="container mx-auto px-4 py-3">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          {/* Logo and Title */}
+          <Link 
+            to="/" 
+            className="flex items-center space-x-2 group"
+            aria-label="Home"
+          >
+            <FaFilm className="text-3xl text-primary-500 group-hover:text-primary-600 transition-colors" />
+            <span className="text-2xl font-bold text-gray-800 dark:text-white group-hover:text-primary-500 transition-colors">
+              FilmExplorer
+            </span>
+          </Link>
 
-        {/* Conteneur flex pour la recherche et le toggle */}
-        <div className="flex items-center space-x-4 w-full max-w-md justify-end md:justify-between">
-          {/* Search - Prend toute la largeur disponible sauf sur mobile */}
-          <div className="w-full md:w-auto flex-grow md:flex-grow-0">
-            <Search />
+          {/* Search and Theme Toggle */}
+          <div className="flex items-center gap-4 w-full md:w-auto">
+            <div className="flex-grow md:flex-grow-0 md:w-96">
+              <Search />
+            </div>
+            <ThemeToggle />
           </div>
-          <ThemeToggle />
         </div>
       </div>
     </nav>
