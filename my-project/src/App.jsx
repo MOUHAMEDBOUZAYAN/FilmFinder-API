@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import MovieDetail from './pages/MovieDetail';
-
+import Footer from './components/Footer';
 
 
 function App() {
@@ -17,6 +17,7 @@ function App() {
            
           </Routes>
         </main>
+        <Footer />
       </div>
     </Router>
   );
