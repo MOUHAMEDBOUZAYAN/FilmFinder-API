@@ -14,7 +14,7 @@ const apiClient = axios.create({
 /**
  * Randomly selects a subset of movies
  */
-export const sampleMovies = (movies, count = 4) => {
+export const sampleMovies = (movies, count = 10) => {
   if (!movies?.length || movies.length <= count) return [...movies];
   const shuffled = [...movies].sort(() => 0.5 - Math.random());
   return shuffled.slice(0, count);
