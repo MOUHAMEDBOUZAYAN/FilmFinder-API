@@ -31,13 +31,13 @@ const Footer = () => {
           <div className="flex flex-col items-center md:items-end">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Nous suivre</h3>
             <div className="flex space-x-4 mb-4">
-              <a href="https://github.com/yourusername" aria-label="GitHub" className="text-gray-600 dark:text-gray-300 hover:text-blue-500 transition-colors">
+              <a href="https://github.com/MOUHAMEDBOUZAYAN/FilmFinder-API/commits/main/" aria-label="GitHub" className="text-gray-600 dark:text-gray-300 hover:text-blue-500 transition-colors">
                 <FaGithub className="text-2xl" />
               </a>
               <a href="https://twitter.com/yourusername" aria-label="Twitter" className="text-gray-600 dark:text-gray-300 hover:text-blue-500 transition-colors">
                 <FaTwitter className="text-2xl" />
               </a>
-              <a href="https://linkedin.com/in/yourusername" aria-label="LinkedIn" className="text-gray-600 dark:text-gray-300 hover:text-blue-500 transition-colors">
+              <a href="https://www.linkedin.com/in/mouhamed-bouzayan-9a7222344/" aria-label="LinkedIn" className="text-gray-600 dark:text-gray-300 hover:text-blue-500 transition-colors">
                 <FaLinkedin className="text-2xl" />
               </a>
             </div>

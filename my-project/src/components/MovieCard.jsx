@@ -2,8 +2,30 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import PropTypes from 'prop-types';
 import { FaStar, FaHeart } from 'react-icons/fa';
+import { useState } from 'react';
 
 const MovieCard = ({ movie, index }) => {
+  const [isFavorite, setIsFavorite] = useState(() => {
+    const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+    return favorites.some(fav => fav.imdbID === movie.imdbID);
+  });
+
+  const toggleFavorite = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+    
+    if (isFavorite) {
+      const updated = favorites.filter(fav => fav.imdbID !== movie.imdbID);
+      localStorage.setItem('favorites', JSON.stringify(updated));
+    } else {
+      localStorage.setItem('favorites', JSON.stringify([...favorites, movie]));
+    }
+    
+    setIsFavorite(!isFavorite);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -52,8 +74,9 @@ const MovieCard = ({ movie, index }) => {
 
       {/* Favorite Button */}
       <motion.button
-        className="absolute top-2 right-2 bg-white dark:bg-dark-700 p-2 rounded-full shadow-md hover:bg-primary-500 hover:text-white transition-all"
-        aria-label="Add to favorites"
+        onClick={toggleFavorite}
+        className={`absolute top-2 right-2 p-2 rounded-full shadow-md transition-all ${isFavorite ? 'bg-red-500 text-white' : 'bg-white dark:bg-dark-700 text-gray-800 dark:text-white'}`}
+        aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
       >
@@ -61,18 +84,6 @@ const MovieCard = ({ movie, index }) => {
       </motion.button>
     </motion.div>
   );
-};
-
-MovieCard.propTypes = {
-  movie: PropTypes.shape({
-    imdbID: PropTypes.string.isRequired,
-    Title: PropTypes.string,
-    Poster: PropTypes.string,
-    Year: PropTypes.string,
-    Type: PropTypes.string,
-    imdbRating: PropTypes.string,
-  }).isRequired,
-  index: PropTypes.number,
 };
 
 export default MovieCard;
