@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import PropTypes from 'prop-types';
-import { FaStar, FaHeart } from 'react-icons/fa';
+import { FaStar, FaHeart, FaClock, FaFilm, FaUser } from 'react-icons/fa';
 import { useState } from 'react';
 
 const MovieCard = ({ movie, index }) => {
@@ -13,16 +13,16 @@ const MovieCard = ({ movie, index }) => {
   const toggleFavorite = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-    
+
     if (isFavorite) {
       const updated = favorites.filter(fav => fav.imdbID !== movie.imdbID);
       localStorage.setItem('favorites', JSON.stringify(updated));
     } else {
       localStorage.setItem('favorites', JSON.stringify([...favorites, movie]));
     }
-    
+
     setIsFavorite(!isFavorite);
   };
 
@@ -50,7 +50,7 @@ const MovieCard = ({ movie, index }) => {
           />
           {/* Rating Badge */}
           {movie.imdbRating && (
-            <motion.div 
+            <motion.div
               className="absolute top-2 left-2 bg-primary-500 text-white px-2 py-1 rounded-md flex items-center text-sm font-semibold"
               whileHover={{ scale: 1.1 }}
             >
@@ -65,9 +65,32 @@ const MovieCard = ({ movie, index }) => {
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white truncate mb-1">
             {movie.Title || 'Unknown Title'}
           </h3>
-          <div className="flex justify-between items-center text-sm text-gray-600 dark:text-gray-300">
+
+          <div className="flex justify-between items-center text-sm text-gray-600 dark:text-gray-300 mb-2">
             <span>{movie.Year || 'Unknown Year'}</span>
             <span className="capitalize">{movie.Type}</span>
+          </div>
+
+          {/* Additional Info */}
+          <div className="text-sm text-gray-600 dark:text-gray-300 space-y-1 mt-2">
+            {movie.Runtime && (
+              <div className="flex items-center gap-2">
+                <FaClock className="text-primary-500" />
+                <span>{movie.Runtime}</span>
+              </div>
+            )}
+            {movie.Genre && (
+              <div className="flex items-center gap-2">
+                <FaFilm className="text-primary-500" />
+                <span>{movie.Genre}</span>
+              </div>
+            )}
+            {movie.Director && (
+              <div className="flex items-center gap-2">
+                <FaUser className="text-primary-500" />
+                <span>{movie.Director}</span>
+              </div>
+            )}
           </div>
         </div>
       </Link>
@@ -75,7 +98,11 @@ const MovieCard = ({ movie, index }) => {
       {/* Favorite Button */}
       <motion.button
         onClick={toggleFavorite}
-        className={`absolute top-2 right-2 p-2 rounded-full shadow-md transition-all ${isFavorite ? 'bg-red-500 text-white' : 'bg-white dark:bg-dark-700 text-gray-800 dark:text-white'}`}
+        className={`absolute top-2 right-2 p-2 rounded-full shadow-md transition-all ${
+          isFavorite
+            ? 'bg-red-500 text-white'
+            : 'bg-white dark:bg-dark-700 text-gray-800 dark:text-white'
+        }`}
         aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
@@ -84,6 +111,11 @@ const MovieCard = ({ movie, index }) => {
       </motion.button>
     </motion.div>
   );
+};
+
+MovieCard.propTypes = {
+  movie: PropTypes.object.isRequired,
+  index: PropTypes.number,
 };
 
 export default MovieCard;
