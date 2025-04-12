@@ -5,20 +5,14 @@ const ThemeToggle = () => {
   const [darkMode, setDarkMode] = useState(() => {
     if (typeof window !== 'undefined') {
       const savedMode = localStorage.getItem('darkMode');
-      if (savedMode !== null) {
-        return JSON.parse(savedMode);
-      }
-      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+      return savedMode ? JSON.parse(savedMode) : 
+        window.matchMedia('(prefers-color-scheme: dark)').matches;
     }
     return false;
   });
 
   useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    document.documentElement.classList.toggle('dark', darkMode);
     localStorage.setItem('darkMode', JSON.stringify(darkMode));
   }, [darkMode]);
 
