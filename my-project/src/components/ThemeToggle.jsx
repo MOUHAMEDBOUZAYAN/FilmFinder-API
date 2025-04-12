@@ -3,16 +3,22 @@ import { SunIcon, MoonIcon } from '@heroicons/react/24/solid';
 
 const ThemeToggle = () => {
   const [darkMode, setDarkMode] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const savedMode = localStorage.getItem('darkMode');
-      return savedMode ? JSON.parse(savedMode) : 
-        window.matchMedia('(prefers-color-scheme: dark)').matches;
-    }
-    return false;
+    // Vérifie d'abord le localStorage
+    const savedMode = localStorage.getItem('darkMode');
+    if (savedMode !== null) return JSON.parse(savedMode);
+    
+    // Fallback à la préférence système
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', darkMode);
+    // Applique la classe au document
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    // Sauvegarde dans localStorage
     localStorage.setItem('darkMode', JSON.stringify(darkMode));
   }, [darkMode]);
 
