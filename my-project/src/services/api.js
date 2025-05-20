@@ -6,14 +6,17 @@ const BASE_URL = 'http://www.omdbapi.com/';
 const apiClient = axios.create({
   baseURL: BASE_URL,
   params: {
-    apikey: API_KEY,  // OMDb uses `apikey` (not `api_key`)
+    apikey: API_KEY,
   },
   timeout: 10000,
 });
 
-/**
- * Randomly selects a subset of movies
- */
+  
+
+
+
+
+
 export const sampleMovies = (movies, count = 10) => {
   if (!movies?.length || movies.length <= count) return [...movies];
   const shuffled = [...movies].sort(() => 0.5 - Math.random());
@@ -44,9 +47,10 @@ export const searchMovies = async (query, page = 1) => {
   }
 };
 
-/**
- * Fetches full details of a movie by IMDB ID
- */
+
+
+
+
 export const getMovieDetails = async (id) => {
   try {
     const res = await apiClient.get('/', {
