@@ -1,23 +1,44 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar';
-import Home from './pages/Home';
-import MovieDetail from './pages/MovieDetail';
-import Favorites from './pages/Favorites';
-import About from './pages/About';
-import Footer from './components/Footer';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
+import { lazy, Suspense } from 'react';
+import EnhancedNavbar from './components/EnhancedNavbar';
+import Footer from './components/EnhancedFooter';
+import EnhancedLoader from './components/EnhancedLoader';
 
+// Lazy load pages for better performance
+const EnhancedHome = lazy(() => import('./pages/EnhancedHome'));
+const EnhancedMovieDetail = lazy(() => import('./pages/EnhancedMovieDetail'));
+const EnhancedFavorites = lazy(() => import('./pages/EnhancedFavorites'));
+const About = lazy(() => import('./pages/About'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+
+// Wrapper component for route change animations
+const AnimatedRoutes = () => {
+  const location = useLocation();
+  
+  return (
+    <AnimatePresence mode="wait">
+      <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><EnhancedLoader size="lg" /></div>}>
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={<EnhancedHome />} />
+          <Route path="/movie/:id" element={<EnhancedMovieDetail />} />
+          <Route path="/favorites" element={<EnhancedFavorites />} />
+          <Route path="/about" element={<About />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
+    </AnimatePresence>
+  );
+};
+
+// Main App component
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-light-100 dark:bg-dark-900 transition-colors duration-200">
-        <Navbar />
-        <main className="pb-10">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/movie/:id" element={<MovieDetail />} />
-            <Route path="/favorites" element={<Favorites />} />
-            <Route path="/about" element={<About />} />
-          </Routes>
+      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-dark-900 transition-colors duration-200">
+        <EnhancedNavbar />
+        <main className="flex-grow">
+          <AnimatedRoutes />
         </main>
         <Footer />
       </div>

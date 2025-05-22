@@ -1,49 +1,72 @@
+/**
+ * CORRECTIFS POUR LE THÈME SOMBRE
+ *
+ * Ce fichier contient des modifications à apporter à votre fichier tailwind.config.js
+ * pour assurer que le mode sombre fonctionne correctement.
+ */
+
 /** @type {import('tailwindcss').Config} */
-export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
-  darkMode: 'class', // Cette ligne doit être à la racine de la configuration
+module.exports = {
+  content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
+  darkMode: 'class', // Important: utilise les classes pour le mode sombre
   theme: {
     extend: {
       colors: {
         primary: {
-          400: '#FF9E5E',
-          500: '#FF7B3D',
-          600: '#E05E2B',
+          50: '#f0f9ff',
+          100: '#e0f2fe',
+          200: '#bae6fd',
+          300: '#7dd3fc',
+          400: '#38bdf8',
+          500: '#0ea5e9',
+          600: '#0284c7',
+          700: '#0369a1',
+          800: '#075985',
+          900: '#0c4a6e',
         },
         secondary: {
-          400: '#4FD1C5',
-          500: '#38B2AC',
-          600: '#2C7A7B',
+          500: '#f59e0b',
+          600: '#d97706',
         },
+        // Ajout de couleurs spécifiques pour le mode sombre
         dark: {
-          700: '#2D3748',
-          800: '#1A202C',
-          900: '#171923',
-        },
-        light: {
-          100: '#F7FAFC',
-          200: '#EDF2F7',
-          300: '#E2E8F0',
+          700: '#374151', // gray-700
+          800: '#1f2937', // gray-800
+          900: '#111827', // gray-900
         }
       },
       animation: {
-        'fade-in': 'fadeIn 0.5s ease-in-out',
-        'slide-up': 'slideUp 0.5s ease-out'
+        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'bounce-slow': 'bounce 2s infinite',
       },
-      keyframes: {
-        fadeIn: {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' },
+      transitionProperty: {
+        'height': 'height',
+        'spacing': 'margin, padding',
+      },
+      boxShadow: {
+        'inner-lg': 'inset 0 2px 10px 0 rgba(0, 0, 0, 0.15)',
+      },
+      typography: {
+        DEFAULT: {
+          css: {
+            maxWidth: '100%',
+          },
         },
-        slideUp: {
-          '0%': { transform: 'translateY(20px)', opacity: '0' },
-          '100%': { transform: 'translateY(0)', opacity: '1' },
-        }
+      },
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
       }
-    }
+    },
+    container: {
+      center: true,
+      padding: {
+        DEFAULT: '1rem',
+        sm: '2rem',
+        lg: '4rem',
+        xl: '5rem',
+        '2xl': '6rem',
+      },
+    },
   },
   plugins: [],
-}
+};
