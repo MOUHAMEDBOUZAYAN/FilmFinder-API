@@ -38,7 +38,7 @@
 **FilmFinder** est une application web moderne et responsive conçue pour les passionnés de cinéma. Elle offre une expérience utilisateur exceptionnelle pour découvrir, rechercher et organiser des films avec des données en temps réel provenant de l'API OMDb.
 
 ### 🎪 Démonstration en Direct
-- **🌐 Site Web** : [filmfinder-demo.netlify.app](https://filmfinder-demo.netlify.app)
+- **🌐 Site Web** : [filmfinder-demo.netlify.app](https://film-finder-demo.netlify.app/)
 - **📹 Vidéo Démo** : [Voir la démo](https://youtube.com/demo)
 - **📊 Analytics** : Interface moderne avec 95% de satisfaction utilisateur
 
