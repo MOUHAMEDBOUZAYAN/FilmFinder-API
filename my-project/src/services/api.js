@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 const API_KEY = '3307b1b2'; 
-const BASE_URL = 'http://www.omdbapi.com/';
+// FIXED: Changed to HTTPS instead of HTTP
+const BASE_URL = 'https://www.omdbapi.com/';
 
 const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -10,12 +11,6 @@ const apiClient = axios.create({
   },
   timeout: 10000,
 });
-
-  
-
-
-
-
 
 export const sampleMovies = (movies, count = 10) => {
   if (!movies?.length || movies.length <= count) return [...movies];
@@ -46,10 +41,6 @@ export const searchMovies = async (query, page = 1) => {
     );
   }
 };
-
-
-
-
 
 export const getMovieDetails = async (id) => {
   try {
