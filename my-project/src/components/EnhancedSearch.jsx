@@ -1,41 +1,81 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/solid';
-import { FaFilm, FaClock, FaSpinner } from 'react-icons/fa';
+import { 
+  MagnifyingGlassIcon, XMarkIcon, SparklesIcon, 
+  ClockIcon, FireIcon, ArrowTrendingUpIcon
+} from '@heroicons/react/24/solid';
+import { 
+  FaFilm, FaClock, FaSpinner, FaMicrophone, 
+  FaFilter, FaStar, FaCalendar, FaUser, FaHistory
+} from 'react-icons/fa';
 import { searchMovies } from '../services/api';
 
-const EnhancedSearch = ({ placeholder = "Rechercher un film..." }) => {
+const ProfessionalSearch = ({ placeholder = "Rechercher des films, acteurs, réalisateurs..." }) => {
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [recentSearches, setRecentSearches] = useState([]);
+  const [trendingSearches, setTrendingSearches] = useState([]);
+  const [searchHistory, setSearchHistory] = useState([]);
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState('all');
+  const [isListening, setIsListening] = useState(false);
+  
   const searchRef = useRef(null);
+  const inputRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Sync with URL and load recent searches
+  // Enhanced search data
+  const filters = [
+    { id: 'all', name: 'Tout', icon: FaFilm },
+    { id: 'movie', name: 'Films', icon: FaFilm },
+    { id: 'person', name: 'Personnes', icon: FaUser },
+    { id: 'year', name: 'Année', icon: FaCalendar },
+  ];
+
+  const trendingQueries = [
+    { query: 'Oppenheimer', category: 'film', trending: true },
+    { query: 'Barbie', category: 'film', trending: true },
+    { query: 'Margot Robbie', category: 'actor', trending: false },
+    { query: 'Christopher Nolan', category: 'director', trending: false },
+    { query: 'Marvel 2024', category: 'search', trending: true },
+    { query: 'Science Fiction', category: 'genre', trending: false },
+  ];
+
+  // Sync with URL and load saved data
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     setQuery(params.get('search') || '');
     
-    // Load recent searches from localStorage
-    const saved = localStorage.getItem('recentSearches');
-    if (saved) {
-      try {
-        setRecentSearches(JSON.parse(saved).slice(0, 5));
-      } catch (err) {
-        console.error('Error parsing recent searches', err);
+    // Load saved data from localStorage
+    try {
+      const savedRecent = localStorage.getItem('recentSearches');
+      const savedHistory = localStorage.getItem('searchHistory');
+      
+      if (savedRecent) {
+        setRecentSearches(JSON.parse(savedRecent).slice(0, 8));
       }
+      
+      if (savedHistory) {
+        setSearchHistory(JSON.parse(savedHistory).slice(0, 20));
+      }
+    } catch (err) {
+      console.error('Error loading search data', err);
     }
+
+    // Set trending searches
+    setTrendingSearches(trendingQueries);
   }, [location.search]);
 
-  // Handle clicks outside the search component
+  // Enhanced click outside handler
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (searchRef.current && !searchRef.current.contains(event.target)) {
         setIsFocused(false);
+        setShowFilters(false);
       }
     };
 
@@ -43,45 +83,84 @@ const EnhancedSearch = ({ placeholder = "Rechercher un film..." }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Fetch suggestions when query changes
+  // Debounced search suggestions
+  const fetchSuggestions = useCallback(
+    async (searchQuery) => {
+      if (searchQuery.length < 2) {
+        setSuggestions([]);
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        const { Search } = await searchMovies(searchQuery);
+        const filteredResults = Search?.slice(0, 8) || [];
+        
+        // Enhance suggestions with additional data
+        const enhancedSuggestions = filteredResults.map(item => ({
+          ...item,
+          searchType: item.Type,
+          matchType: 'title', // Could be 'title', 'actor', 'director'
+          popularity: Math.floor(Math.random() * 100), // Mock popularity score
+        }));
+
+        setSuggestions(enhancedSuggestions);
+      } catch (error) {
+        console.error('Error fetching suggestions:', error);
+        setSuggestions([]);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
+
   useEffect(() => {
-    const fetchSuggestions = async () => {
-      if (query.length > 2) { // Only search after 3 characters
-        setIsLoading(true);
-        try {
-          const { Search } = await searchMovies(query);
-          setSuggestions(Search?.slice(0, 5) || []); // Limit to 5 suggestions
-        } catch (error) {
-          console.error('Error fetching suggestions:', error);
-          setSuggestions([]);
-        } finally {
-          setIsLoading(false);
-        }
+    const debounceTimer = setTimeout(() => {
+      if (query && isFocused) {
+        fetchSuggestions(query);
       } else {
         setSuggestions([]);
       }
-    };
+    }, 300);
 
-    const debounceTimer = setTimeout(fetchSuggestions, 300); // Debounce 300ms
     return () => clearTimeout(debounceTimer);
-  }, [query]);
+  }, [query, isFocused, fetchSuggestions]);
 
+  // Enhanced search submission
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!query.trim()) return;
     
-    // Save to recent searches
-    const newRecentSearches = [
-      query,
-      ...recentSearches.filter(item => item !== query)
-    ].slice(0, 5);
+    performSearch(query.trim());
+  };
+
+  const performSearch = (searchTerm) => {
+    // Save to search history
+    const searchEntry = {
+      query: searchTerm,
+      timestamp: Date.now(),
+      filter: selectedFilter,
+      results: suggestions.length
+    };
+
+    const newHistory = [searchEntry, ...searchHistory.filter(item => item.query !== searchTerm)].slice(0, 20);
+    const newRecentSearches = [searchTerm, ...recentSearches.filter(item => item !== searchTerm)].slice(0, 8);
     
+    setSearchHistory(newHistory);
     setRecentSearches(newRecentSearches);
+    
+    localStorage.setItem('searchHistory', JSON.stringify(newHistory));
     localStorage.setItem('recentSearches', JSON.stringify(newRecentSearches));
     
+    // Navigate with search params
     const params = new URLSearchParams(location.search);
-    params.set('search', query);
+    params.set('search', searchTerm);
+    if (selectedFilter !== 'all') {
+      params.set('filter', selectedFilter);
+    }
     params.delete('page');
+    
     navigate(`?${params.toString()}`);
     setIsFocused(false);
   };
@@ -91,40 +170,71 @@ const EnhancedSearch = ({ placeholder = "Rechercher un film..." }) => {
     setSuggestions([]);
     const params = new URLSearchParams(location.search);
     params.delete('search');
+    params.delete('filter');
     navigate(`?${params.toString()}`);
+    inputRef.current?.focus();
   };
 
-  const handleSuggestionClick = (title) => {
-    setQuery(title);
-    
-    // Save to recent searches
-    const newRecentSearches = [
-      title,
-      ...recentSearches.filter(item => item !== title)
-    ].slice(0, 5);
-    
-    setRecentSearches(newRecentSearches);
-    localStorage.setItem('recentSearches', JSON.stringify(newRecentSearches));
-    
-    navigate(`?search=${encodeURIComponent(title)}`);
-    setIsFocused(false);
+  const handleSuggestionClick = (item) => {
+    setQuery(item.Title);
+    performSearch(item.Title);
   };
 
-  const clearRecentSearches = () => {
+  const handleQuickSearch = (searchTerm) => {
+    setQuery(searchTerm);
+    performSearch(searchTerm);
+  };
+
+  const clearSearchHistory = () => {
+    setSearchHistory([]);
     setRecentSearches([]);
+    localStorage.removeItem('searchHistory');
     localStorage.removeItem('recentSearches');
+  };
+
+  // Voice search functionality (mock)
+  const startVoiceSearch = () => {
+    if ('webkitSpeechRecognition' in window) {
+      setIsListening(true);
+      // Mock voice search - in real app, implement actual speech recognition
+      setTimeout(() => {
+        setIsListening(false);
+        setQuery('voice search result');
+      }, 2000);
+    } else {
+      alert('Recherche vocale non supportée par ce navigateur');
+    }
+  };
+
+  const getSearchIcon = (type) => {
+    switch (type) {
+      case 'movie': return <FaFilm className="text-blue-500" />;
+      case 'series': return <FaFilm className="text-green-500" />;
+      case 'person': return <FaUser className="text-purple-500" />;
+      default: return <FaFilm className="text-gray-500" />;
+    }
+  };
+
+  const getPopularityBadge = (popularity) => {
+    if (popularity > 80) return { text: 'Très populaire', color: 'bg-red-500' };
+    if (popularity > 60) return { text: 'Populaire', color: 'bg-orange-500' };
+    if (popularity > 40) return { text: 'Connu', color: 'bg-yellow-500' };
+    return { text: 'Découverte', color: 'bg-gray-500' };
+  };
+
+  // Get appropriate icon for trending item
+  const getTrendingIcon = (item) => {
+    if (item.trending) {
+      return <ArrowTrendingUpIcon className="w-4 h-4 text-green-400" />;
+    }
+    return <FaFire className="w-4 h-4 text-red-400" />;
   };
 
   // Animation variants
   const containerVariants = {
     rest: { scale: 1 },
-    hover: { scale: 1.02 },
-    tap: { scale: 0.98 }
-  };
-
-  const iconVariants = {
-    rest: { rotate: 0 },
-    hover: { rotate: 5, scale: 1.1 }
+    hover: { scale: 1.01 },
+    focus: { scale: 1.02, boxShadow: "0 0 0 4px rgba(99, 102, 241, 0.1)" }
   };
 
   const dropdownVariants = {
@@ -136,7 +246,8 @@ const EnhancedSearch = ({ placeholder = "Rechercher un film..." }) => {
       transition: {
         type: "spring",
         stiffness: 300,
-        damping: 24
+        damping: 25,
+        staggerChildren: 0.05
       }
     },
     exit: { 
@@ -153,12 +264,25 @@ const EnhancedSearch = ({ placeholder = "Rechercher un film..." }) => {
       opacity: 1, 
       x: 0,
       transition: { 
-        delay: custom * 0.05,
+        delay: custom * 0.03,
         type: "spring",
-        stiffness: 100
+        stiffness: 300
       }
     }),
-    hover: { scale: 1.02, backgroundColor: "rgba(59, 130, 246, 0.1)" }
+    hover: { 
+      scale: 1.02, 
+      backgroundColor: "rgba(99, 102, 241, 0.1)",
+      transition: { duration: 0.2 }
+    }
+  };
+
+  const filterVariants = {
+    hidden: { opacity: 0, scale: 0.8 },
+    visible: { 
+      opacity: 1, 
+      scale: 1,
+      transition: { type: "spring", stiffness: 300 }
+    }
   };
 
   return (
@@ -166,51 +290,131 @@ const EnhancedSearch = ({ placeholder = "Rechercher un film..." }) => {
       ref={searchRef}
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="relative w-full max-w-md mx-auto"
+      className="relative w-full max-w-2xl mx-auto"
     >
       <motion.form 
         onSubmit={handleSubmit}
         variants={containerVariants}
         initial="rest"
         whileHover="hover"
-        whileTap="tap"
+        animate={isFocused ? "focus" : "rest"}
       >
-        <div className={`flex items-center border rounded-full px-4 py-2 transition-all duration-200 ${
+        <div className={`flex items-center bg-white dark:bg-gray-800 border-2 rounded-2xl transition-all duration-300 shadow-lg ${
           isFocused 
-            ? 'border-primary-500 shadow-lg' 
-            : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 shadow-md'
+            ? 'border-indigo-500 shadow-xl shadow-indigo-500/20' 
+            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
         }`}>
-          <motion.div variants={iconVariants}>
-            <MagnifyingGlassIcon className={`h-5 w-5 ${
-              isFocused ? 'text-primary-500' : 'text-gray-400 dark:text-gray-500'
-            }`} />
-          </motion.div>
+          {/* Search Icon */}
+          <div className="pl-6 pr-3">
+            <motion.div
+              animate={isLoading ? { rotate: 360 } : { rotate: 0 }}
+              transition={isLoading ? { duration: 1, repeat: Infinity, ease: "linear" } : {}}
+            >
+              {isLoading ? (
+                <FaSpinner className="h-5 w-5 text-indigo-500" />
+              ) : (
+                <MagnifyingGlassIcon className={`h-5 w-5 transition-colors ${
+                  isFocused ? 'text-indigo-500' : 'text-gray-400 dark:text-gray-500'
+                }`} />
+              )}
+            </motion.div>
+          </div>
           
+          {/* Main Input */}
           <input
+            ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => setIsFocused(true)}
             placeholder={placeholder}
-            className="w-full bg-transparent border-none focus:outline-none px-3 py-1 text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500"
+            className="flex-1 bg-transparent border-none focus:outline-none py-4 text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 text-lg"
             autoComplete="off"
           />
           
-          {query && (
+          {/* Action Buttons */}
+          <div className="flex items-center space-x-2 pr-3">
+            {/* Voice Search */}
             <motion.button
               type="button"
-              onClick={clearSearch}
-              className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              onClick={startVoiceSearch}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
+              className={`p-2 rounded-full transition-all ${
+                isListening 
+                  ? 'bg-red-500 text-white animate-pulse' 
+                  : 'text-gray-400 hover:text-indigo-500 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
             >
-              <XMarkIcon className="h-5 w-5" />
+              <FaMicrophone className="h-4 w-4" />
             </motion.button>
-          )}
+
+            {/* Filter Button */}
+            <motion.button
+              type="button"
+              onClick={() => setShowFilters(!showFilters)}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className={`p-2 rounded-full transition-all ${
+                showFilters 
+                  ? 'bg-indigo-500 text-white' 
+                  : 'text-gray-400 hover:text-indigo-500 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              <FaFilter className="h-4 w-4" />
+            </motion.button>
+
+            {/* Clear Button */}
+            {query && (
+              <motion.button
+                type="button"
+                onClick={clearSearch}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="p-2 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
+              >
+                <XMarkIcon className="h-4 w-4" />
+              </motion.button>
+            )}
+          </div>
         </div>
+
+        {/* Filters */}
+        <AnimatePresence>
+          {showFilters && (
+            <motion.div
+              variants={filterVariants}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+              className="flex items-center space-x-2 mt-3 px-2"
+            >
+              {filters.map((filter) => (
+                <motion.button
+                  key={filter.id}
+                  type="button"
+                  onClick={() => setSelectedFilter(filter.id)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                    selectedFilter === filter.id
+                      ? 'bg-indigo-500 text-white shadow-lg'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  <filter.icon className="h-4 w-4" />
+                  <span>{filter.name}</span>
+                </motion.button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.form>
 
-      {/* Dropdown with suggestions and recent searches */}
+      {/* Enhanced Dropdown */}
       <AnimatePresence>
         {isFocused && (
           <motion.div 
@@ -218,37 +422,194 @@ const EnhancedSearch = ({ placeholder = "Rechercher un film..." }) => {
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="absolute z-20 mt-2 w-full bg-white dark:bg-dark-700 rounded-lg shadow-xl overflow-hidden"
+            className="absolute z-20 mt-2 w-full bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden"
           >
+            {/* Quick Actions */}
+            {!query && (
+              <div className="p-6 border-b border-gray-100 dark:border-gray-700">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-white flex items-center">
+                    <SparklesIcon className="h-5 w-5 text-indigo-500 mr-2" />
+                    Recherches Rapides
+                  </h3>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    className="text-xs text-indigo-500 hover:text-indigo-600 font-medium"
+                  >
+                    Tout voir
+                  </motion.button>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  {trendingSearches.slice(0, 6).map((item, index) => (
+                    <motion.button
+                      key={index}
+                      variants={suggestionVariants}
+                      custom={index}
+                      whileHover="hover"
+                      onClick={() => handleQuickSearch(item.query)}
+                      className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all group"
+                    >
+                      <div className="flex items-center space-x-3">
+                        {getSearchIcon(item.category)}
+                        <span className="font-medium text-gray-700 dark:text-gray-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+                          {item.query}
+                        </span>
+                      </div>
+                      {item.trending && (
+                        <div className="flex items-center space-x-1 text-red-500">
+                          <ArrowTrendingUpIcon className="h-4 w-4" />
+                          <span className="text-xs font-medium">Hot</span>
+                        </div>
+                      )}
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Recent Searches */}
             {recentSearches.length > 0 && !query && (
-              <div className="px-4 py-3">
-                <div className="flex justify-between items-center mb-2">
-                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    Recherches récentes
+              <div className="p-6 border-b border-gray-100 dark:border-gray-700">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide flex items-center">
+                    <ClockIcon className="h-4 w-4 mr-2" />
+                    Recherches Récentes
                   </h3>
                   <button 
-                    onClick={clearRecentSearches}
-                    className="text-xs text-primary-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                    onClick={clearSearchHistory}
+                    className="text-xs text-red-500 hover:text-red-600 dark:hover:text-red-400 transition-colors font-medium"
                   >
                     Effacer
                   </button>
                 </div>
-                <div className="space-y-1">
-                  {recentSearches.map((term, index) => (
+                <div className="space-y-2">
+                  {recentSearches.slice(0, 5).map((term, index) => (
                     <motion.button
                       key={`recent-${index}`}
                       variants={suggestionVariants}
-                      initial="hidden"
-                      animate="visible"
-                      whileHover="hover"
                       custom={index}
-                      onClick={() => handleSuggestionClick(term)}
-                      className="w-full text-left px-3 py-2 rounded-md text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-dark-600 flex items-center"
+                      whileHover="hover"
+                      onClick={() => handleQuickSearch(term)}
+                      className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all group"
                     >
-                      <FaClock className="h-3 w-3 text-gray-400 mr-2 flex-shrink-0" />
-                      <span className="truncate">{term}</span>
+                      <div className="flex items-center space-x-3">
+                        <FaHistory className="h-4 w-4 text-gray-400 group-hover:text-indigo-500" />
+                        <span className="font-medium">{term}</span>
+                      </div>
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        whileHover={{ opacity: 1 }}
+                        className="text-gray-400 hover:text-red-500"
+                      >
+                        <XMarkIcon className="h-4 w-4" />
+                      </motion.div>
                     </motion.button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Search Suggestions */}
+            {suggestions.length > 0 && query && (
+              <div className="p-6">
+                <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-4 flex items-center">
+                  <MagnifyingGlassIcon className="h-4 w-4 mr-2" />
+                  Suggestions ({suggestions.length})
+                </h3>
+                <div className="space-y-2">
+                  {suggestions.map((movie, index) => {
+                    const popularity = getPopularityBadge(movie.popularity);
+                    return (
+                      <motion.button
+                        key={movie.imdbID}
+                        variants={suggestionVariants}
+                        custom={index}
+                        whileHover="hover"
+                        onClick={() => handleSuggestionClick(movie)}
+                        className="w-full flex items-center px-4 py-4 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all group"
+                      >
+                        {/* Movie Poster/Icon */}
+                        <div className="flex-shrink-0 mr-4">
+                          {movie.Poster && movie.Poster !== 'N/A' ? (
+                            <img 
+                              src={movie.Poster} 
+                              alt={movie.Title}
+                              className="w-12 h-16 object-cover rounded-lg shadow-sm"
+                            />
+                          ) : (
+                            <div className="w-12 h-16 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-700 rounded-lg flex items-center justify-center">
+                              <FaFilm className="text-gray-400 text-xl" />
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Movie Info */}
+                        <div className="flex-1 text-left">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h4 className="font-semibold text-gray-800 dark:text-gray-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 line-clamp-1">
+                                {movie.Title}
+                              </h4>
+                              <div className="flex items-center space-x-3 mt-1">
+                                <span className="text-sm text-gray-500 dark:text-gray-400">
+                                  {movie.Year}
+                                </span>
+                                <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300 capitalize">
+                                  {movie.Type}
+                                </span>
+                                {movie.imdbRating && (
+                                  <div className="flex items-center space-x-1">
+                                    <FaStar className="h-3 w-3 text-yellow-400" />
+                                    <span className="text-xs text-gray-600 dark:text-gray-400">
+                                      {movie.imdbRating}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            
+                            {/* Popularity Badge */}
+                            <span className={`text-xs px-2 py-1 rounded-full text-white ${popularity.color}`}>
+                              {popularity.text}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Trending Icon */}
+                        {movie.trending && (
+                          <span className="ml-2">
+                            {getTrendingIcon(movie)}
+                          </span>
+                        )}
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* No Results */}
+            {query.length > 2 && !isLoading && suggestions.length === 0 && (
+              <div className="p-8 text-center">
+                <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <MagnifyingGlassIcon className="h-8 w-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  Aucun résultat trouvé
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400 mb-4">
+                  Aucun résultat pour "{query}". Essayez avec d'autres termes.
+                </p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {['Action', 'Comédie', 'Drame', 'Science-Fiction'].map(genre => (
+                    <button
+                      key={genre}
+                      onClick={() => handleQuickSearch(genre)}
+                      className="px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full text-sm hover:bg-indigo-200 dark:hover:bg-indigo-800/50 transition-colors"
+                    >
+                      {genre}
+                    </button>
                   ))}
                 </div>
               </div>
@@ -256,50 +617,11 @@ const EnhancedSearch = ({ placeholder = "Rechercher un film..." }) => {
 
             {/* Loading State */}
             {isLoading && (
-              <div className="px-4 py-3 text-gray-500 dark:text-gray-400 flex items-center justify-center">
-                <FaSpinner className="animate-spin h-4 w-4 mr-2" />
-                Recherche...
-              </div>
-            )}
-
-            {/* Suggestions */}
-            {suggestions.length > 0 && (
-              <div>
-                {recentSearches.length > 0 && !query && <div className="border-t border-gray-100 dark:border-gray-700 my-1"></div>}
-                <div className="px-4 py-3">
-                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                    Suggestions
-                  </h3>
-                  <div className="space-y-1">
-                    {suggestions.map((movie, index) => (
-                      <motion.button
-                        key={movie.imdbID}
-                        variants={suggestionVariants}
-                        initial="hidden"
-                        animate="visible"
-                        whileHover="hover"
-                        custom={index}
-                        onClick={() => handleSuggestionClick(movie.Title)}
-                        className="w-full text-left px-3 py-2 rounded-md hover:bg-primary-50 dark:hover:bg-dark-600 flex items-center"
-                      >
-                        <FaFilm className="h-4 w-4 text-gray-400 mr-2 flex-shrink-0" />
-                        <div className="overflow-hidden">
-                          <p className="text-gray-800 dark:text-gray-200 truncate">{movie.Title}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {movie.Year}{movie.Type ? ` • ${movie.Type}` : ''}
-                          </p>
-                        </div>
-                      </motion.button>
-                    ))}
-                  </div>
+              <div className="p-8 text-center">
+                <div className="flex items-center justify-center space-x-3 text-indigo-500">
+                  <FaSpinner className="animate-spin h-5 w-5" />
+                  <span className="font-medium">Recherche en cours...</span>
                 </div>
-              </div>
-            )}
-
-            {/* No Results */}
-            {query.length > 2 && !isLoading && suggestions.length === 0 && (
-              <div className="py-3 px-4 text-gray-500 dark:text-gray-400 text-center">
-                Aucun résultat pour "{query}"
               </div>
             )}
           </motion.div>
@@ -309,4 +631,4 @@ const EnhancedSearch = ({ placeholder = "Rechercher un film..." }) => {
   );
 };
 
-export default EnhancedSearch;
+export default ProfessionalSearch;

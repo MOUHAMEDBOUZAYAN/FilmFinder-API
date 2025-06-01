@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { searchMovies, sampleMovies } from '../services/api';
-import ImprovedMovieCard from '../components/ImprovedMovieCard';
+import ImprovedMovieCard from '../components/MovieCard';
 import HeroSection from '../components/EnhancedHeroSection';
 import Loader from '../components/ImprovedLoader';
 import { 

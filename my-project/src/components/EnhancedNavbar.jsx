@@ -1,29 +1,41 @@
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaFilm, FaHeart, FaHome, FaInfoCircle, FaBars, FaTimes, FaChevronDown, FaSearch } from 'react-icons/fa';
+import { 
+  FaFilm, FaHeart, FaHome, FaInfoCircle, FaBars, FaTimes, 
+  FaChevronDown, FaSearch, FaCrown, FaUser, FaBell, FaCog,
+  FaSignOutAlt, FaBookmark, FaHistory, FaGift
+} from 'react-icons/fa';
 import EnhancedThemeToggle from './EnhancedThemeToggle';
 import EnhancedSearch from './EnhancedSearch';
 
-const ImprovedNavbar = () => {
+const ProfessionalNavbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [categoryMenuOpen, setCategoryMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [notifications, setNotifications] = useState(3);
   const location = useLocation();
   const searchRef = useRef(null);
+  const userMenuRef = useRef(null);
 
-  // Close mobile menu when route changes
+  // Close menus when route changes
   useEffect(() => {
     setMobileMenuOpen(false);
     setSearchOpen(false);
+    setCategoryMenuOpen(false);
+    setUserMenuOpen(false);
   }, [location]);
 
-  // Handle clicks outside the search component
+  // Handle clicks outside menus
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (searchRef.current && !searchRef.current.contains(event.target)) {
         setSearchOpen(false);
+      }
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setUserMenuOpen(false);
       }
     };
 
@@ -31,50 +43,57 @@ const ImprovedNavbar = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Track scroll position for navbar styling
+  // Enhanced scroll tracking with navbar transformation
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 10) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
+      const scrollY = window.scrollY;
+      setScrolled(scrollY > 20);
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   // Animation variants
   const navbarVariants = {
-    initial: { y: -100 },
+    initial: { y: -100, opacity: 0 },
     animate: { 
-      y: 0,
+      y: 0, 
+      opacity: 1,
       transition: { 
         type: "spring", 
         stiffness: 100, 
-        damping: 20 
+        damping: 20,
+        duration: 0.6
       }
     }
   };
 
   const logoVariants = {
-    initial: { scale: 0.8, opacity: 0 },
+    initial: { scale: 0.8, opacity: 0, rotate: -10 },
     animate: { 
       scale: 1, 
       opacity: 1,
-      transition: { delay: 0.2, duration: 0.3 }
+      rotate: 0,
+      transition: { delay: 0.2, duration: 0.5, type: "spring", stiffness: 200 }
     },
     hover: { 
       scale: 1.05,
-      color: "#3B82F6", // primary-500
+      rotate: 2,
       transition: { duration: 0.2 }
     }
   };
 
   const linkVariants = {
+    initial: { opacity: 0, y: -20 },
+    animate: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.3 }
+    },
     hover: { 
       scale: 1.05,
+      y: -2,
       transition: { duration: 0.2 }
     },
     tap: { scale: 0.95 }
@@ -82,19 +101,21 @@ const ImprovedNavbar = () => {
 
   const mobileMenuVariants = {
     closed: { 
-      height: 0,
+      x: "100%",
       opacity: 0,
       transition: {
-        height: { duration: 0.3 },
-        opacity: { duration: 0.2 }
+        type: "spring",
+        stiffness: 300,
+        damping: 30
       }
     },
     open: { 
-      height: "auto",
+      x: 0,
       opacity: 1,
       transition: {
-        height: { duration: 0.3 },
-        opacity: { duration: 0.2, delay: 0.1 }
+        type: "spring",
+        stiffness: 300,
+        damping: 30
       }
     }
   };
@@ -102,7 +123,7 @@ const ImprovedNavbar = () => {
   const dropdownVariants = {
     closed: { 
       opacity: 0,
-      y: -5,
+      y: -10,
       scale: 0.95,
       transition: { duration: 0.2 }
     },
@@ -110,327 +131,554 @@ const ImprovedNavbar = () => {
       opacity: 1,
       y: 0,
       scale: 1,
-      transition: { duration: 0.2 }
+      transition: { 
+        type: "spring",
+        stiffness: 300,
+        damping: 25
+      }
     }
   };
 
-  const searchExpandVariants = {
-    closed: {
-      width: "40px",
-      transition: { duration: 0.3 }
-    },
+  const itemStaggerVariants = {
+    closed: {},
     open: {
-      width: "280px",
-      transition: { duration: 0.3 }
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    closed: { opacity: 0, x: -20 },
+    open: { 
+      opacity: 1, 
+      x: 0,
+      transition: { type: "spring", stiffness: 300 }
     }
   };
 
   const categories = [
-    { name: 'Action', path: '/?search=action' },
-    { name: 'Comédie', path: '/?search=comedy' },
-    { name: 'Drame', path: '/?search=drama' },
-    { name: 'Science-Fiction', path: '/?search=sci-fi' },
-    { name: 'Horreur', path: '/?search=horror' },
-    { name: 'Animation', path: '/?search=animation' },
-    { name: 'Thriller', path: '/?search=thriller' },
+    { name: 'Action', path: '/?search=action', icon: '💥', color: 'text-red-400' },
+    { name: 'Comédie', path: '/?search=comedy', icon: '😂', color: 'text-yellow-400' },
+    { name: 'Drame', path: '/?search=drama', icon: '🎭', color: 'text-blue-400' },
+    { name: 'Science-Fiction', path: '/?search=sci-fi', icon: '🚀', color: 'text-purple-400' },
+    { name: 'Horreur', path: '/?search=horror', icon: '👻', color: 'text-gray-400' },
+    { name: 'Animation', path: '/?search=animation', icon: '🎨', color: 'text-green-400' },
+    { name: 'Thriller', path: '/?search=thriller', icon: '🔥', color: 'text-orange-400' },
+    { name: 'Romance', path: '/?search=romance', icon: '💕', color: 'text-pink-400' },
+  ];
+
+  const userMenuItems = [
+    { name: 'Mon Profil', icon: FaUser, path: '/profile' },
+    { name: 'Mes Favoris', icon: FaHeart, path: '/favorites' },
+    { name: 'Mes Listes', icon: FaBookmark, path: '/watchlists' },
+    { name: 'Historique', icon: FaHistory, path: '/history' },
+    { name: 'Paramètres', icon: FaCog, path: '/settings' },
+    { name: 'Premium', icon: FaCrown, path: '/premium', premium: true },
   ];
 
   return (
-    <motion.nav 
-      variants={navbarVariants}
-      initial="initial"
-      animate="animate"
-      className={`sticky top-0 z-50 transition-all duration-300 ${
-        scrolled 
-          ? 'bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-md'
-          : 'bg-white dark:bg-gray-900 shadow-sm'
-      }`}
-    >
-      <div className="container mx-auto px-4 py-3">
-        <div className="flex justify-between items-center">
-          {/* Logo */}
-          <Link 
-            to="/" 
-            className="flex items-center space-x-2"
-            aria-label="Accueil"
-          >
-            <motion.div
-              variants={logoVariants}
-              initial="initial"
-              animate="animate"
-              whileHover="hover"
-              className="flex items-center gap-2"
-            >
+    <>
+      <motion.nav 
+        variants={navbarVariants}
+        initial="initial"
+        animate="animate"
+        className={`fixed top-0 w-full z-50 transition-all duration-500 ${
+          scrolled 
+            ? 'bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl shadow-2xl border-b border-gray-200/20 dark:border-gray-700/20' 
+            : 'bg-transparent'
+        }`}
+      >
+        <div className="container mx-auto px-4 lg:px-6">
+          <div className="flex justify-between items-center h-16 lg:h-20">
+            {/* Enhanced Logo */}
+            <Link to="/" className="flex items-center space-x-3">
               <motion.div
-                initial={{ rotate: 0 }}
-                animate={{ rotate: 360 }}
-                transition={{ duration: 2, repeat: Infinity, ease: "linear", repeatDelay: 5 }}
-                className="text-primary-500"
-              >
-                <FaFilm className="text-3xl" />
-              </motion.div>
-              <span className="text-2xl font-bold text-gray-800 dark:text-white transition-colors hidden sm:block">
-                FilmExplorer
-              </span>
-            </motion.div>
-          </Link>
-
-          {/* Mobile Menu Button */}
-          <div className="flex items-center gap-2 sm:hidden">
-            <motion.button
-              ref={searchRef}
-              variants={searchExpandVariants}
-              initial="closed"
-              animate={searchOpen ? "open" : "closed"}
-              className="relative overflow-hidden bg-gray-100 dark:bg-gray-800 rounded-full h-10 flex items-center justify-end px-2"
-              onClick={() => setSearchOpen(!searchOpen)}
-            >
-              {searchOpen ? (
-                <input 
-                  autoFocus
-                  type="text" 
-                  placeholder="Rechercher un film..."
-                  className="w-full bg-transparent border-none focus:outline-none pl-3 pr-8 text-gray-700 dark:text-gray-200"
-                />
-              ) : null}
-              <FaSearch className="text-gray-500 dark:text-gray-400 absolute right-3" />
-            </motion.button>
-
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-md text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700"
-              aria-label="Menu"
-            >
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={mobileMenuOpen ? 'close' : 'open'}
-                  initial={{ rotate: -90, opacity: 0 }}
-                  animate={{ rotate: 0, opacity: 1 }}
-                  exit={{ rotate: 90, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  {mobileMenuOpen ? <FaTimes className="h-6 w-6" /> : <FaBars className="h-6 w-6" />}
-                </motion.div>
-              </AnimatePresence>
-            </motion.button>
-          </div>
-
-          {/* Desktop Navigation */}
-          <div className="hidden sm:flex items-center space-x-1">
-            <motion.div
-              variants={linkVariants}
-              whileHover="hover"
-              whileTap="tap"
-            >
-              <NavLink 
-                to="/" 
-                className={({ isActive }) => 
-                  `flex items-center px-3 py-2 rounded-md transition-colors ${isActive ? 'bg-primary-100 dark:bg-gray-700 text-primary-600 dark:text-primary-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`
-                }
-              >
-                <FaHome className="mr-2" />
-                Accueil
-              </NavLink>
-            </motion.div>
-            
-            {/* Categories Dropdown */}
-            <div className="relative">
-              <motion.button 
-                variants={linkVariants}
+                variants={logoVariants}
+                initial="initial"
+                animate="animate"
                 whileHover="hover"
-                whileTap="tap"
-                onClick={() => setCategoryMenuOpen(!categoryMenuOpen)} 
-                className="flex items-center px-3 py-2 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                className="relative"
               >
-                <FaFilm className="mr-2" />
-                Catégories
-                <motion.div
-                  animate={{ rotate: categoryMenuOpen ? 180 : 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="ml-1"
-                >
-                  <FaChevronDown />
-                </motion.div>
-              </motion.button>
-              
-              <AnimatePresence>
-                {categoryMenuOpen && (
-                  <motion.div 
-                    variants={dropdownVariants}
-                    initial="closed"
-                    animate="open"
-                    exit="closed"
-                    className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-10"
-                    onMouseLeave={() => setCategoryMenuOpen(false)}
+                <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
                   >
-                    {categories.map((category, index) => (
-                      <motion.div
-                        key={category.name}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                      >
-                        <Link
-                          to={category.path}
-                          className="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-gray-700 hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
-                        >
-                          {category.name}
-                        </Link>
-                      </motion.div>
-                    ))}
+                    <FaFilm className="text-white text-xl" />
                   </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-            
-            <motion.div
-              variants={linkVariants}
-              whileHover="hover"
-              whileTap="tap"
-            >
-              <NavLink 
-                to="/favorites" 
-                className={({ isActive }) => 
-                  `flex items-center px-3 py-2 rounded-md transition-colors ${isActive ? 'bg-primary-100 dark:bg-gray-700 text-primary-600 dark:text-primary-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`
-                }
-              >
-                <FaHeart className="mr-2" />
-                Favoris
-              </NavLink>
-            </motion.div>
-            
-            <motion.div
-              variants={linkVariants}
-              whileHover="hover"
-              whileTap="tap"
-            >
-              <NavLink 
-                to="/about" 
-                className={({ isActive }) => 
-                  `flex items-center px-3 py-2 rounded-md transition-colors ${isActive ? 'bg-primary-100 dark:bg-gray-700 text-primary-600 dark:text-primary-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`
-                }
-              >
-                <FaInfoCircle className="mr-2" />
-                À Propos
-              </NavLink>
-            </motion.div>
-          </div>
+                </div>
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-pulse"></div>
+              </motion.div>
+              <div className="hidden sm:block">
+                <motion.h1 
+                  variants={linkVariants}
+                  className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-400 dark:via-purple-400 dark:to-pink-400 bg-clip-text text-transparent"
+                >
+                  FilmHub Pro
+                </motion.h1>
+                <motion.p 
+                  variants={linkVariants}
+                  className="text-xs text-gray-500 dark:text-gray-400 -mt-1"
+                >
+                  Découvrez le cinéma
+                </motion.p>
+              </div>
+            </Link>
 
-          {/* Search and Theme Toggle */}
-          <div className="hidden sm:flex items-center gap-4">
-            <div className="w-64">
-              <EnhancedSearch placeholder="Rechercher un film..." />
+            {/* Desktop Navigation */}
+            <div className="hidden lg:flex items-center space-x-1">
+              <motion.div variants={linkVariants} whileHover="hover" whileTap="tap">
+                <NavLink 
+                  to="/" 
+                  className={({ isActive }) => 
+                    `flex items-center px-4 py-2 rounded-full transition-all duration-300 font-medium ${
+                      isActive 
+                        ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg' 
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-indigo-600 dark:hover:text-indigo-400'
+                    }`
+                  }
+                >
+                  <FaHome className="mr-2 text-sm" />
+                  Accueil
+                </NavLink>
+              </motion.div>
+              
+              {/* Enhanced Categories Dropdown */}
+              <div className="relative">
+                <motion.button 
+                  variants={linkVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                  onClick={() => setCategoryMenuOpen(!categoryMenuOpen)} 
+                  className="flex items-center px-4 py-2 rounded-full text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-300 font-medium"
+                >
+                  <FaFilm className="mr-2 text-sm" />
+                  Catégories
+                  <motion.div
+                    animate={{ rotate: categoryMenuOpen ? 180 : 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="ml-2"
+                  >
+                    <FaChevronDown className="text-xs" />
+                  </motion.div>
+                </motion.button>
+                
+                <AnimatePresence>
+                  {categoryMenuOpen && (
+                    <motion.div 
+                      variants={dropdownVariants}
+                      initial="closed"
+                      animate="open"
+                      exit="closed"
+                      className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+                      onMouseLeave={() => setCategoryMenuOpen(false)}
+                    >
+                      <div className="p-4">
+                        <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wide">
+                          Genres Populaires
+                        </h3>
+                        <motion.div 
+                          variants={itemStaggerVariants}
+                          initial="closed"
+                          animate="open"
+                          className="grid grid-cols-2 gap-2"
+                        >
+                          {categories.map((category, index) => (
+                            <motion.div key={category.name} variants={itemVariants}>
+                              <Link
+                                to={category.path}
+                                className="flex items-center p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 group"
+                              >
+                                <span className="text-2xl mr-3">{category.icon}</span>
+                                <div>
+                                  <span className={`font-medium ${category.color} group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors`}>
+                                    {category.name}
+                                  </span>
+                                </div>
+                              </Link>
+                            </motion.div>
+                          ))}
+                        </motion.div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+              
+              <motion.div variants={linkVariants} whileHover="hover" whileTap="tap">
+                <NavLink 
+                  to="/favorites" 
+                  className={({ isActive }) => 
+                    `flex items-center px-4 py-2 rounded-full transition-all duration-300 font-medium ${
+                      isActive 
+                        ? 'bg-gradient-to-r from-pink-500 to-red-500 text-white shadow-lg' 
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-pink-600 dark:hover:text-pink-400'
+                    }`
+                  }
+                >
+                  <FaHeart className="mr-2 text-sm" />
+                  Favoris
+                </NavLink>
+              </motion.div>
+              
+              <motion.div variants={linkVariants} whileHover="hover" whileTap="tap">
+                <NavLink 
+                  to="/about" 
+                  className={({ isActive }) => 
+                    `flex items-center px-4 py-2 rounded-full transition-all duration-300 font-medium ${
+                      isActive 
+                        ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg' 
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-blue-600 dark:hover:text-blue-400'
+                    }`
+                  }
+                >
+                  <FaInfoCircle className="mr-2 text-sm" />
+                  À Propos
+                </NavLink>
+              </motion.div>
             </div>
-            <EnhancedThemeToggle />
+
+            {/* Right Side Actions */}
+            <div className="flex items-center space-x-3">
+              {/* Search */}
+              <div className="hidden lg:block">
+                <div className="w-80">
+                  <EnhancedSearch placeholder="Rechercher..." />
+                </div>
+              </div>
+
+              {/* Mobile Search Button */}
+              <div className="lg:hidden">
+                <motion.button
+                  ref={searchRef}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
+                  onClick={() => setSearchOpen(!searchOpen)}
+                >
+                  <FaSearch className="text-lg" />
+                </motion.button>
+              </div>
+
+              {/* Notifications */}
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="hidden md:flex relative p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
+              >
+                <FaBell className="text-lg" />
+                {notifications > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs rounded-full flex items-center justify-center animate-pulse">
+                    {notifications}
+                  </span>
+                )}
+              </motion.button>
+
+              {/* Theme Toggle */}
+              <EnhancedThemeToggle />
+
+              {/* User Menu */}
+              <div className="hidden md:block relative" ref={userMenuRef}>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="flex items-center space-x-2 p-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:from-indigo-600 hover:to-purple-600 transition-all shadow-lg"
+                >
+                  <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                    <FaUser className="text-sm" />
+                  </div>
+                  <FaChevronDown className={`text-xs transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
+                </motion.button>
+
+                <AnimatePresence>
+                  {userMenuOpen && (
+                    <motion.div
+                      variants={dropdownVariants}
+                      initial="closed"
+                      animate="open"
+                      exit="closed"
+                      className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+                    >
+                      <div className="p-4 border-b border-gray-100 dark:border-gray-700">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center">
+                            <FaUser className="text-white" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-900 dark:text-white">John Doe</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Premium Member</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <motion.div variants={itemStaggerVariants} initial="closed" animate="open" className="p-2">
+                        {userMenuItems.map((item, index) => (
+                          <motion.div key={item.name} variants={itemVariants}>
+                            <Link
+                              to={item.path}
+                              className={`flex items-center px-3 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all group ${
+                                item.premium ? 'bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20' : ''
+                              }`}
+                            >
+                              <item.icon className={`mr-3 ${item.premium ? 'text-yellow-500' : 'text-gray-400 group-hover:text-indigo-500'}`} />
+                              <span className={`font-medium ${item.premium ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-700 dark:text-gray-300'}`}>
+                                {item.name}
+                              </span>
+                              {item.premium && <FaCrown className="ml-auto text-yellow-500 text-sm" />}
+                            </Link>
+                          </motion.div>
+                        ))}
+                        
+                        <div className="border-t border-gray-100 dark:border-gray-700 mt-2 pt-2">
+                          <motion.button
+                            variants={itemVariants}
+                            className="flex items-center w-full px-3 py-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all text-red-600 dark:text-red-400"
+                          >
+                            <FaSignOutAlt className="mr-3" />
+                            <span className="font-medium">Déconnexion</span>
+                          </motion.button>
+                        </div>
+                      </motion.div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Mobile Menu Button */}
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="lg:hidden p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
+              >
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={mobileMenuOpen ? 'close' : 'open'}
+                    initial={{ rotate: -90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: 90, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {mobileMenuOpen ? <FaTimes className="text-lg" /> : <FaBars className="text-lg" />}
+                  </motion.div>
+                </AnimatePresence>
+              </motion.button>
+            </div>
           </div>
         </div>
+      </motion.nav>
 
-        {/* Mobile Menu */}
-        <AnimatePresence>
-          {mobileMenuOpen && (
+      {/* Mobile Search Overlay */}
+      <AnimatePresence>
+        {searchOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start justify-center pt-20"
+          >
+            <motion.div
+              initial={{ y: -20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -20, opacity: 0 }}
+              className="w-full max-w-md mx-4"
+            >
+              <EnhancedSearch placeholder="Rechercher..." />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+              onClick={() => setMobileMenuOpen(false)}
+            />
             <motion.div
               variants={mobileMenuVariants}
               initial="closed"
               animate="open"
               exit="closed"
-              className="sm:hidden mt-4 overflow-hidden"
+              className="lg:hidden fixed top-0 right-0 w-80 h-full bg-white dark:bg-gray-900 z-50 shadow-2xl"
             >
-              <div className="space-y-2 py-3">
-                <NavLink 
-                  to="/" 
-                  className={({ isActive }) => 
-                    `block px-4 py-2 rounded-md transition-colors ${isActive ? 'bg-primary-100 dark:bg-gray-700 text-primary-600 dark:text-primary-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`
-                  }
-                >
-                  <FaHome className="inline mr-2" />
-                  Accueil
-                </NavLink>
-                
-                {/* Mobile Categories */}
-                <div className="px-4 py-2">
-                  <button 
-                    onClick={() => setCategoryMenuOpen(!categoryMenuOpen)}
-                    className="flex items-center w-full text-left rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors py-2"
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-8">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center">
+                      <FaFilm className="text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold gradient-text">FilmHub Pro</h2>
+                      <p className="text-xs text-gray-500">Menu Principal</p>
+                    </div>
+                  </div>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="p-2 rounded-full bg-gray-100 dark:bg-gray-800"
                   >
-                    <FaFilm className="inline mr-2" />
-                    Catégories
-                    <motion.div
-                      animate={{ rotate: categoryMenuOpen ? 180 : 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="ml-2"
+                    <FaTimes className="text-gray-600 dark:text-gray-300" />
+                  </motion.button>
+                </div>
+
+                <motion.div variants={itemStaggerVariants} initial="closed" animate="open" className="space-y-2">
+                  <motion.div variants={itemVariants}>
+                    <NavLink 
+                      to="/" 
+                      className={({ isActive }) => 
+                        `flex items-center px-4 py-4 rounded-xl transition-all ${
+                          isActive 
+                            ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg' 
+                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                        }`
+                      }
                     >
-                      <FaChevronDown />
-                    </motion.div>
-                  </button>
-                  
-                  <AnimatePresence>
-                    {categoryMenuOpen && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="ml-6 mt-2 space-y-1 overflow-hidden"
+                      <FaHome className="mr-4 text-lg" />
+                      <span className="font-medium">Accueil</span>
+                    </NavLink>
+                  </motion.div>
+
+                  <motion.div variants={itemVariants}>
+                    <div className="px-4 py-2">
+                      <button 
+                        onClick={() => setCategoryMenuOpen(!categoryMenuOpen)}
+                        className="flex items-center justify-between w-full py-3 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                       >
-                        {categories.map((category, index) => (
+                        <div className="flex items-center">
+                          <FaFilm className="mr-4 text-lg" />
+                          <span className="font-medium">Catégories</span>
+                        </div>
+                        <motion.div
+                          animate={{ rotate: categoryMenuOpen ? 180 : 0 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <FaChevronDown />
+                        </motion.div>
+                      </button>
+                      
+                      <AnimatePresence>
+                        {categoryMenuOpen && (
                           <motion.div
-                            key={category.name}
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.05 }}
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="ml-8 mt-2 space-y-1 overflow-hidden"
                           >
-                            <Link
-                              to={category.path}
-                              className="block py-2 px-3 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-primary-500 transition-colors"
-                            >
-                              {category.name}
-                            </Link>
+                            {categories.slice(0, 6).map((category, index) => (
+                              <motion.div
+                                key={category.name}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: index * 0.05 }}
+                              >
+                                <Link
+                                  to={category.path}
+                                  className="flex items-center py-2 px-3 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                                >
+                                  <span className="mr-3">{category.icon}</span>
+                                  <span>{category.name}</span>
+                                </Link>
+                              </motion.div>
+                            ))}
                           </motion.div>
-                        ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-                
-                <NavLink 
-                  to="/favorites" 
-                  className={({ isActive }) => 
-                    `block px-4 py-2 rounded-md transition-colors ${isActive ? 'bg-primary-100 dark:bg-gray-700 text-primary-600 dark:text-primary-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`
-                  }
-                >
-                  <FaHeart className="inline mr-2" />
-                  Favoris
-                </NavLink>
-                
-                <NavLink 
-                  to="/about" 
-                  className={({ isActive }) => 
-                    `block px-4 py-2 rounded-md transition-colors ${isActive ? 'bg-primary-100 dark:bg-gray-700 text-primary-600 dark:text-primary-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`
-                  }
-                >
-                  <FaInfoCircle className="inline mr-2" />
-                  À Propos
-                </NavLink>
-              </div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </motion.div>
+                  
+                  <motion.div variants={itemVariants}>
+                    <NavLink 
+                      to="/favorites" 
+                      className={({ isActive }) => 
+                        `flex items-center px-4 py-4 rounded-xl transition-all ${
+                          isActive 
+                            ? 'bg-gradient-to-r from-pink-500 to-red-500 text-white shadow-lg' 
+                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                        }`
+                      }
+                    >
+                      <FaHeart className="mr-4 text-lg" />
+                      <span className="font-medium">Favoris</span>
+                    </NavLink>
+                  </motion.div>
+                  
+                  <motion.div variants={itemVariants}>
+                    <NavLink 
+                      to="/about" 
+                      className={({ isActive }) => 
+                        `flex items-center px-4 py-4 rounded-xl transition-all ${
+                          isActive 
+                            ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg' 
+                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                        }`
+                      }
+                    >
+                      <FaInfoCircle className="mr-4 text-lg" />
+                      <span className="font-medium">À Propos</span>
+                    </NavLink>
+                  </motion.div>
+                </motion.div>
 
-              <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                <div className="px-4 mb-4">
-                  <EnhancedSearch placeholder="Rechercher un film..." />
-                </div>
+                <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+                  <motion.button
+                    variants={itemVariants}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-semibold py-4 px-6 rounded-xl transition-all shadow-lg flex items-center justify-center"
+                  >
+                    <FaCrown className="mr-2" />
+                    Passer au Premium
+                  </motion.button>
 
-                <div className="flex justify-between items-center px-4 pb-2">
-                  <span className="text-gray-700 dark:text-gray-300">Changer de thème</span>
-                  <EnhancedThemeToggle />
+                  <div className="flex justify-between items-center mt-6">
+                    <span className="text-gray-700 dark:text-gray-300 font-medium">Thème</span>
+                    <EnhancedThemeToggle />
+                  </div>
+
+                  {/* User Profile Section */}
+                  <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                    <div className="flex items-center space-x-3 mb-4">
+                      <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center">
+                        <FaUser className="text-white" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900 dark:text-white">John Doe</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Membre Premium</p>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      {userMenuItems.slice(0, 4).map((item, index) => (
+                        <Link
+                          key={item.name}
+                          to={item.path}
+                          className="flex items-center px-3 py-2 rounded-lg hover:bg-white dark:hover:bg-gray-700 transition-all text-gray-600 dark:text-gray-300"
+                        >
+                          <item.icon className="mr-3 text-sm" />
+                          <span className="text-sm font-medium">{item.name}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </motion.nav>
+          </>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 
-export default ImprovedNavbar;
+export default ProfessionalNavbar;

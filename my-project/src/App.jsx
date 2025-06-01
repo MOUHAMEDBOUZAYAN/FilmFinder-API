@@ -37,7 +37,7 @@ function App() {
     <Router>
       <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-dark-900 transition-colors duration-200">
         <EnhancedNavbar />
-        <main className="flex-grow">
+        <main className="flex-grow pt-16 lg:pt-20">
           <AnimatedRoutes />
         </main>
         <Footer />

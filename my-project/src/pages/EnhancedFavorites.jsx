@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaHeart, FaTrash, FaArrowRight, FaExclamationCircle, FaSearch } from 'react-icons/fa';
 import { getMovieDetails } from '../services/api';
-import ImprovedMovieCard from '../components/ImprovedMovieCard';
+import MovieCard from '../components/MovieCard';
 import Loader from '../components/ImprovedLoader';
 
 const EnhancedFavorites = () => {
@@ -192,7 +192,7 @@ const EnhancedFavorites = () => {
                 layout
               >
                 <div className="relative">
-                  <ImprovedMovieCard movie={movie} index={index} />
+                  <MovieCard movie={movie} index={index} />
                   
                   {deleteMode && (
                     <motion.button
