@@ -72,8 +72,28 @@ const MovieCard = ({ movie, index, layout = 'grid', isPremium = false }) => {
     if (isFavorite) {
       const updated = favorites.filter(fav => fav.imdbID !== movie.imdbID);
       localStorage.setItem('favorites', JSON.stringify(updated));
+      // Add notification for removing from favorites
+      const notifications = JSON.parse(localStorage.getItem('notifications')) || [];
+      notifications.unshift({
+        id: Date.now(),
+        type: 'favorite',
+        message: `Vous avez retiré "${movie.Title}" de vos favoris`,
+        timestamp: new Date().toISOString(),
+        read: false
+      });
+      localStorage.setItem('notifications', JSON.stringify(notifications));
     } else {
       localStorage.setItem('favorites', JSON.stringify([...favorites, movie]));
+      // Add notification for adding to favorites
+      const notifications = JSON.parse(localStorage.getItem('notifications')) || [];
+      notifications.unshift({
+        id: Date.now(),
+        type: 'favorite',
+        message: `Vous avez ajouté "${movie.Title}" à vos favoris`,
+        timestamp: new Date().toISOString(),
+        read: false
+      });
+      localStorage.setItem('notifications', JSON.stringify(notifications));
     }
 
     setIsFavorite(!isFavorite);
@@ -88,8 +108,28 @@ const MovieCard = ({ movie, index, layout = 'grid', isPremium = false }) => {
     if (isWatchlisted) {
       const updated = watchlist.filter(item => item.imdbID !== movie.imdbID);
       localStorage.setItem('watchlist', JSON.stringify(updated));
+      // Add notification for removing from watchlist
+      const notifications = JSON.parse(localStorage.getItem('notifications')) || [];
+      notifications.unshift({
+        id: Date.now(),
+        type: 'watchlist',
+        message: `Vous avez retiré "${movie.Title}" de votre liste à voir`,
+        timestamp: new Date().toISOString(),
+        read: false
+      });
+      localStorage.setItem('notifications', JSON.stringify(notifications));
     } else {
       localStorage.setItem('watchlist', JSON.stringify([...watchlist, movie]));
+      // Add notification for adding to watchlist
+      const notifications = JSON.parse(localStorage.getItem('notifications')) || [];
+      notifications.unshift({
+        id: Date.now(),
+        type: 'watchlist',
+        message: `Vous avez ajouté "${movie.Title}" à votre liste à voir`,
+        timestamp: new Date().toISOString(),
+        read: false
+      });
+      localStorage.setItem('notifications', JSON.stringify(notifications));
     }
 
     setIsWatchlisted(!isWatchlisted);

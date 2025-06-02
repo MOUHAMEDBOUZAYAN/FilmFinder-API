@@ -11,7 +11,7 @@ import {
 } from 'react-icons/fa';
 import { searchMovies } from '../services/api';
 
-const ProfessionalSearch = ({ placeholder = "Rechercher des films, acteurs, réalisateurs..." }) => {
+const ProfessionalSearch = ({ placeholder = "Rechercher des films, acteurs, réalisateurs...", activeDropdown, setActiveDropdown }) => {
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
@@ -19,7 +19,6 @@ const ProfessionalSearch = ({ placeholder = "Rechercher des films, acteurs, réa
   const [recentSearches, setRecentSearches] = useState([]);
   const [trendingSearches, setTrendingSearches] = useState([]);
   const [searchHistory, setSearchHistory] = useState([]);
-  const [showFilters, setShowFilters] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [isListening, setIsListening] = useState(false);
   
@@ -73,15 +72,19 @@ const ProfessionalSearch = ({ placeholder = "Rechercher des films, acteurs, réa
   // Enhanced click outside handler
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Close search dropdown and filters if click is outside the search container
       if (searchRef.current && !searchRef.current.contains(event.target)) {
         setIsFocused(false);
-        setShowFilters(false);
+        // Only close if the search dropdown or filters are currently active
+        if (activeDropdown === 'search') {
+          setActiveDropdown('none');
+        }
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [activeDropdown]); // Depend on activeDropdown to re-run effect
 
   // Debounced search suggestions
   const fetchSuggestions = useCallback(
@@ -352,11 +355,15 @@ const ProfessionalSearch = ({ placeholder = "Rechercher des films, acteurs, réa
             {/* Filter Button */}
             <motion.button
               type="button"
-              onClick={() => setShowFilters(!showFilters)}
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent the form's onSubmit from triggering
+                // Toggle search filters visibility via activeDropdown state
+                setActiveDropdown(activeDropdown === 'search' ? 'none' : 'search');
+              }}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               className={`p-2 rounded-full transition-all ${
-                showFilters 
+                activeDropdown === 'search' 
                   ? 'bg-indigo-500 text-white' 
                   : 'text-gray-400 hover:text-indigo-500 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
@@ -384,25 +391,31 @@ const ProfessionalSearch = ({ placeholder = "Rechercher des films, acteurs, réa
 
         {/* Filters */}
         <AnimatePresence>
-          {showFilters && (
+          {/* Render filters only if activeDropdown is 'search' */}
+          {activeDropdown === 'search' && (
             <motion.div
               variants={filterVariants}
               initial="hidden"
               animate="visible"
               exit="hidden"
-              className="flex items-center space-x-2 mt-3 px-2"
+              // Position the filters absolutely below the search bar and give it a higher z-index
+              className="absolute top-full mt-2 left-0 w-full bg-white dark:bg-gray-800 rounded-xl shadow-lg z-40 flex flex-wrap items-center gap-2 p-2"
             >
               {filters.map((filter) => (
                 <motion.button
                   key={filter.id}
                   type="button"
-                  onClick={() => setSelectedFilter(filter.id)}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent closing the dropdown immediately
+                    setSelectedFilter(filter.id);
+                    // Keep filters open after selection for easier multiple selections
+                  }}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all border ${
                     selectedFilter === filter.id
-                      ? 'bg-indigo-500 text-white shadow-lg'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                      ? 'bg-indigo-500 text-white border-indigo-500 shadow-md'
+                      : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-transparent hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-300/50 dark:hover:bg-gray-600/50'
                   }`}
                 >
                   <filter.icon className="h-4 w-4" />
@@ -416,7 +429,7 @@ const ProfessionalSearch = ({ placeholder = "Rechercher des films, acteurs, réa
 
       {/* Enhanced Dropdown */}
       <AnimatePresence>
-        {isFocused && (
+        {isFocused && activeDropdown !== 'search' && activeDropdown !== 'notifications' && (
           <motion.div 
             variants={dropdownVariants}
             initial="hidden"

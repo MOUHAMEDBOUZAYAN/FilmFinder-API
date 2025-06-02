@@ -8,6 +8,7 @@ import {
 } from 'react-icons/fa';
 import EnhancedThemeToggle from './EnhancedThemeToggle';
 import EnhancedSearch from './EnhancedSearch';
+import EnhancedNotifications from './EnhancedNotifications';
 
 const ProfessionalNavbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -15,33 +16,35 @@ const ProfessionalNavbar = () => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [notifications, setNotifications] = useState(3);
   const location = useLocation();
   const searchRef = useRef(null);
   const userMenuRef = useRef(null);
 
-  // Close menus when route changes
+  // New state to manage active dropdown (search, notifications, category, user, none)
+  const [activeDropdown, setActiveDropdown] = useState('none');
+
+  // Close all dropdowns when route changes
   useEffect(() => {
     setMobileMenuOpen(false);
-    setSearchOpen(false);
-    setCategoryMenuOpen(false);
-    setUserMenuOpen(false);
+    setSearchOpen(false); // Assuming mobile search is also a dropdown
+    setActiveDropdown('none');
+    // categoryMenuOpen and userMenuOpen will be controlled by activeDropdown
   }, [location]);
 
-  // Handle clicks outside menus
+  // Handle clicks outside dropdowns
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Close any open dropdown if the click is outside the navbar
       if (searchRef.current && !searchRef.current.contains(event.target)) {
-        setSearchOpen(false);
+        setSearchOpen(false); // Close mobile search if open
       }
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
-        setUserMenuOpen(false);
-      }
+      // Using a general click outside handler for all dropdowns managed by activeDropdown
+      // This will be handled by each component using activeDropdown state
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [activeDropdown]); // Depend on activeDropdown to re-run effect
 
   // Enhanced scroll tracking with navbar transformation
   useEffect(() => {
@@ -247,39 +250,41 @@ const ProfessionalNavbar = () => {
               
               {/* Enhanced Categories Dropdown */}
               <div className="relative">
-                <motion.button 
+                <motion.button
                   variants={linkVariants}
                   whileHover="hover"
                   whileTap="tap"
-                  onClick={() => setCategoryMenuOpen(!categoryMenuOpen)} 
+                  onClick={() => setActiveDropdown(activeDropdown === 'category' ? 'none' : 'category')}
                   className="flex items-center px-4 py-2 rounded-full text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-300 font-medium"
                 >
                   <FaFilm className="mr-2 text-sm" />
                   Catégories
                   <motion.div
-                    animate={{ rotate: categoryMenuOpen ? 180 : 0 }}
+                    animate={{ rotate: activeDropdown === 'category' ? 180 : 0 }}
                     transition={{ duration: 0.3 }}
                     className="ml-2"
                   >
                     <FaChevronDown className="text-xs" />
                   </motion.div>
                 </motion.button>
-                
+
                 <AnimatePresence>
-                  {categoryMenuOpen && (
-                    <motion.div 
+                  {/* Render category dropdown only if activeDropdown is 'category' */}
+                  {activeDropdown === 'category' && (
+                    <motion.div
                       variants={dropdownVariants}
                       initial="closed"
                       animate="open"
                       exit="closed"
                       className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden"
-                      onMouseLeave={() => setCategoryMenuOpen(false)}
+                      // Removed onMouseLeave, will rely on click outside or other button clicks to close
+                      // onMouseLeave={() => setCategoryMenuOpen(false)}
                     >
                       <div className="p-4">
                         <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wide">
                           Genres Populaires
                         </h3>
-                        <motion.div 
+                        <motion.div
                           variants={itemStaggerVariants}
                           initial="closed"
                           animate="open"
@@ -289,6 +294,7 @@ const ProfessionalNavbar = () => {
                             <motion.div key={category.name} variants={itemVariants}>
                               <Link
                                 to={category.path}
+                                onClick={() => setActiveDropdown('none')} // Close dropdown on link click
                                 className="flex items-center p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 group"
                               >
                                 <span className="text-2xl mr-3">{category.icon}</span>
@@ -345,7 +351,12 @@ const ProfessionalNavbar = () => {
               {/* Search */}
               <div className="hidden lg:block">
                 <div className="w-80">
-                  <EnhancedSearch placeholder="Rechercher..." />
+                  {/* Pass activeDropdown state and setter to EnhancedSearch */}
+                  <EnhancedSearch 
+                    placeholder="Rechercher..."
+                    activeDropdown={activeDropdown}
+                    setActiveDropdown={setActiveDropdown}
+                  />
                 </div>
               </div>
 
@@ -356,25 +367,18 @@ const ProfessionalNavbar = () => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
-                  onClick={() => setSearchOpen(!searchOpen)}
+                  onClick={() => setSearchOpen(!searchOpen)} // Mobile search remains separate for now
                 >
                   <FaSearch className="text-lg" />
                 </motion.button>
               </div>
 
               {/* Notifications */}
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="hidden md:flex relative p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
-              >
-                <FaBell className="text-lg" />
-                {notifications > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs rounded-full flex items-center justify-center animate-pulse">
-                    {notifications}
-                  </span>
-                )}
-              </motion.button>
+              {/* Pass activeDropdown state and setter to EnhancedNotifications */}
+              <EnhancedNotifications 
+                activeDropdown={activeDropdown}
+                setActiveDropdown={setActiveDropdown}
+              />
 
               {/* Theme Toggle */}
               <EnhancedThemeToggle />
@@ -384,17 +388,18 @@ const ProfessionalNavbar = () => {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  onClick={() => setActiveDropdown(activeDropdown === 'user' ? 'none' : 'user')}
                   className="flex items-center space-x-2 p-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:from-indigo-600 hover:to-purple-600 transition-all shadow-lg"
                 >
                   <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
                     <FaUser className="text-sm" />
                   </div>
-                  <FaChevronDown className={`text-xs transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
+                  <FaChevronDown className={`text-xs transition-transform ${activeDropdown === 'user' ? 'rotate-180' : ''}`} />
                 </motion.button>
 
                 <AnimatePresence>
-                  {userMenuOpen && (
+                  {/* Render user menu only if activeDropdown is 'user' */}
+                  {activeDropdown === 'user' && (
                     <motion.div
                       variants={dropdownVariants}
                       initial="closed"
@@ -413,12 +418,13 @@ const ProfessionalNavbar = () => {
                           </div>
                         </div>
                       </div>
-                      
+
                       <motion.div variants={itemStaggerVariants} initial="closed" animate="open" className="p-2">
-                        {userMenuItems.map((item, index) => (
+                        {userMenuItems.map((item) => (
                           <motion.div key={item.name} variants={itemVariants}>
                             <Link
                               to={item.path}
+                              onClick={() => setActiveDropdown('none')} // Close dropdown on link click
                               className={`flex items-center px-3 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all group ${
                                 item.premium ? 'bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20' : ''
                               }`}
@@ -431,10 +437,12 @@ const ProfessionalNavbar = () => {
                             </Link>
                           </motion.div>
                         ))}
-                        
+
                         <div className="border-t border-gray-100 dark:border-gray-700 mt-2 pt-2">
                           <motion.button
                             variants={itemVariants}
+                            // Assuming logout also closes the dropdown
+                            onClick={() => setActiveDropdown('none')}
                             className="flex items-center w-full px-3 py-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all text-red-600 dark:text-red-400"
                           >
                             <FaSignOutAlt className="mr-3" />
@@ -551,7 +559,7 @@ const ProfessionalNavbar = () => {
                   <motion.div variants={itemVariants}>
                     <div className="px-4 py-2">
                       <button 
-                        onClick={() => setCategoryMenuOpen(!categoryMenuOpen)}
+                        onClick={() => setActiveDropdown(activeDropdown === 'category' ? 'none' : 'category')}
                         className="flex items-center justify-between w-full py-3 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                       >
                         <div className="flex items-center">
@@ -559,7 +567,7 @@ const ProfessionalNavbar = () => {
                           <span className="font-medium">Catégories</span>
                         </div>
                         <motion.div
-                          animate={{ rotate: categoryMenuOpen ? 180 : 0 }}
+                          animate={{ rotate: activeDropdown === 'category' ? 180 : 0 }}
                           transition={{ duration: 0.3 }}
                         >
                           <FaChevronDown />
@@ -567,7 +575,7 @@ const ProfessionalNavbar = () => {
                       </button>
                       
                       <AnimatePresence>
-                        {categoryMenuOpen && (
+                        {activeDropdown === 'category' && (
                           <motion.div
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: 'auto', opacity: 1 }}
@@ -584,6 +592,7 @@ const ProfessionalNavbar = () => {
                               >
                                 <Link
                                   to={category.path}
+                                  onClick={() => setActiveDropdown('none')}
                                   className="flex items-center py-2 px-3 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                                 >
                                   <span className="mr-3">{category.icon}</span>
