@@ -12,11 +12,13 @@ const EnhancedNotifications = ({ activeDropdown, setActiveDropdown }) => {
   // Ref for the notifications panel for click outside handling
   const notificationsRef = useRef(null);
 
-  // Load notifications from localStorage
+  // Load notifications from localStorage when the panel is opened
   useEffect(() => {
-    const savedNotifications = JSON.parse(localStorage.getItem('notifications')) || [];
-    setNotifications(savedNotifications);
-  }, []);
+    if (activeDropdown === 'notifications') {
+      const savedNotifications = JSON.parse(localStorage.getItem('notifications')) || [];
+      setNotifications(savedNotifications);
+    }
+  }, [activeDropdown]); // Rerun effect when activeDropdown changes
 
   // Handle clicks outside the notifications panel
   useEffect(() => {

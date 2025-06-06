@@ -11,6 +11,7 @@ import {
   StarIcon, HeartIcon, PlayIcon, BookmarkIcon, 
   ShareIcon, EyeIcon, ClockIcon, FilmIcon, ArrowTrendingUpIcon
 } from '@heroicons/react/24/solid';
+import toast from 'react-hot-toast';
 
 const MovieCard = ({ movie, index, layout = 'grid', isPremium = false }) => {
   const [isFavorite, setIsFavorite] = useState(() => {
@@ -82,6 +83,9 @@ const MovieCard = ({ movie, index, layout = 'grid', isPremium = false }) => {
         read: false
       });
       localStorage.setItem('notifications', JSON.stringify(notifications));
+      
+      // Show toast notification
+      toast.success(`"${movie.Title}" retiré des favoris`);
     } else {
       localStorage.setItem('favorites', JSON.stringify([...favorites, movie]));
       // Add notification for adding to favorites
@@ -94,6 +98,9 @@ const MovieCard = ({ movie, index, layout = 'grid', isPremium = false }) => {
         read: false
       });
       localStorage.setItem('notifications', JSON.stringify(notifications));
+
+      // Show toast notification
+      toast.success(`"${movie.Title}" ajouté aux favoris`);
     }
 
     setIsFavorite(!isFavorite);

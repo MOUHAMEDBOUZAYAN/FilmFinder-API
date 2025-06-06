@@ -4,6 +4,7 @@ import { lazy, Suspense } from 'react';
 import EnhancedNavbar from './components/EnhancedNavbar';
 import Footer from './components/EnhancedFooter';
 import EnhancedLoader from './components/EnhancedLoader';
+import { Toaster } from 'react-hot-toast';
 
 // Lazy load pages for better performance
 const EnhancedHome = lazy(() => import('./pages/EnhancedHome'));
@@ -41,6 +42,8 @@ function App() {
           <AnimatedRoutes />
         </main>
         <Footer />
+        {/* Toaster for displaying notifications */}
+        <Toaster position="top-center" />
       </div>
     </Router>
   );
