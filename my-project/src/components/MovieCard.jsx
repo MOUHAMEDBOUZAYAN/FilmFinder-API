@@ -83,7 +83,6 @@ const MovieCard = ({ movie, index, layout = 'grid', isPremium = false }) => {
         read: false
       });
       localStorage.setItem('notifications', JSON.stringify(notifications));
-      
       // Show toast notification
       toast.success(`"${movie.Title}" retiré des favoris`);
     } else {
@@ -98,7 +97,6 @@ const MovieCard = ({ movie, index, layout = 'grid', isPremium = false }) => {
         read: false
       });
       localStorage.setItem('notifications', JSON.stringify(notifications));
-
       // Show toast notification
       toast.success(`"${movie.Title}" ajouté aux favoris`);
     }

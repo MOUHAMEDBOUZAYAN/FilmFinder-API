@@ -12,13 +12,26 @@ const EnhancedNotifications = ({ activeDropdown, setActiveDropdown }) => {
   // Ref for the notifications panel for click outside handling
   const notificationsRef = useRef(null);
 
-  // Load notifications from localStorage when the panel is opened
+  // Load notifications from localStorage on mount and when storage changes
   useEffect(() => {
-    if (activeDropdown === 'notifications') {
+    const loadNotifications = () => {
       const savedNotifications = JSON.parse(localStorage.getItem('notifications')) || [];
       setNotifications(savedNotifications);
-    }
-  }, [activeDropdown]); // Rerun effect when activeDropdown changes
+    };
+    loadNotifications();
+    const handleStorage = (event) => {
+      if (event.key === 'notifications') {
+        loadNotifications();
+      }
+    };
+    const handleCustom = () => loadNotifications();
+    window.addEventListener('storage', handleStorage);
+    window.addEventListener('notifications-updated', handleCustom);
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('notifications-updated', handleCustom);
+    };
+  }, []);
 
   // Handle clicks outside the notifications panel
   useEffect(() => {

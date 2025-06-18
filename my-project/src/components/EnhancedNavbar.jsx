@@ -347,114 +347,98 @@ const ProfessionalNavbar = () => {
             </div>
 
             {/* Right Side Actions */}
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center gap-x-4">
               {/* Search */}
-              <div className="hidden lg:block">
-                <div className="w-80">
-                  {/* Pass activeDropdown state and setter to EnhancedSearch */}
-                  <EnhancedSearch 
-                    placeholder="Rechercher..."
-                    activeDropdown={activeDropdown}
-                    setActiveDropdown={setActiveDropdown}
-                  />
+              <div className="hidden lg:block w-80">
+                {/* Pass activeDropdown state and setter to EnhancedSearch */}
+                <EnhancedSearch 
+                  placeholder="Rechercher..."
+                  activeDropdown={activeDropdown}
+                  setActiveDropdown={setActiveDropdown}
+                />
+              </div>
+              {/* Divider */}
+              <div className="h-8 border-l border-gray-300 dark:border-gray-700 mx-2"></div>
+              {/* Action Icons Group */}
+              <div className="flex items-center space-x-3 bg-white/70 dark:bg-gray-800/70 rounded-full px-3 py-1 shadow">
+                {/* Notifications */}
+                <EnhancedNotifications 
+                  activeDropdown={activeDropdown}
+                  setActiveDropdown={setActiveDropdown}
+                />
+                {/* Theme Toggle */}
+                <EnhancedThemeToggle />
+                {/* User Menu */}
+                <div className="relative" ref={userMenuRef}>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setActiveDropdown(activeDropdown === 'user' ? 'none' : 'user')}
+                    className="flex items-center space-x-2 p-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:from-indigo-600 hover:to-purple-600 transition-all shadow-lg"
+                  >
+                    <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                      <FaUser className="text-sm" />
+                    </div>
+                    <FaChevronDown className={`text-xs transition-transform ${activeDropdown === 'user' ? 'rotate-180' : ''}`} />
+                  </motion.button>
+                  <AnimatePresence>
+                    {/* Render user menu only if activeDropdown is 'user' */}
+                    {activeDropdown === 'user' && (
+                      <motion.div
+                        variants={dropdownVariants}
+                        initial="closed"
+                        animate="open"
+                        exit="closed"
+                        className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+                      >
+                        <div className="p-4 border-b border-gray-100 dark:border-gray-700">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center">
+                              <FaUser className="text-white" />
+                            </div>
+                            <div>
+                              <p className="font-semibold text-gray-900 dark:text-white">John Doe</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">Premium Member</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <motion.div variants={itemStaggerVariants} initial="closed" animate="open" className="p-2">
+                          {userMenuItems.map((item) => (
+                            <motion.div key={item.name} variants={itemVariants}>
+                              <Link
+                                to={item.path}
+                                onClick={() => setActiveDropdown('none')} // Close dropdown on link click
+                                className={`flex items-center px-3 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all group ${
+                                  item.premium ? 'bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20' : ''
+                                }`}
+                              >
+                                <item.icon className={`mr-3 ${item.premium ? 'text-yellow-500' : 'text-gray-400 group-hover:text-indigo-500'}`} />
+                                <span className={`font-medium ${item.premium ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-700 dark:text-gray-300'}`}>
+                                  {item.name}
+                                </span>
+                                {item.premium && <FaCrown className="ml-auto text-yellow-500 text-sm" />}
+                              </Link>
+                            </motion.div>
+                          ))}
+
+                          <div className="border-t border-gray-100 dark:border-gray-700 mt-2 pt-2">
+                            <motion.button
+                              variants={itemVariants}
+                              // Assuming logout also closes the dropdown
+                              onClick={() => setActiveDropdown('none')}
+                              className="flex items-center w-full px-3 py-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all text-red-600 dark:text-red-400"
+                            >
+                              <FaSignOutAlt className="mr-3" />
+                              <span className="font-medium">Déconnexion</span>
+                            </motion.button>
+                          </div>
+                        </motion.div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
-
-              {/* Mobile Search Button */}
-              <div className="lg:hidden">
-                <motion.button
-                  ref={searchRef}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
-                  onClick={() => setSearchOpen(!searchOpen)} // Mobile search remains separate for now
-                >
-                  <FaSearch className="text-lg" />
-                </motion.button>
-              </div>
-
-              {/* Notifications */}
-              {/* Pass activeDropdown state and setter to EnhancedNotifications */}
-              <EnhancedNotifications 
-                activeDropdown={activeDropdown}
-                setActiveDropdown={setActiveDropdown}
-              />
-
-              {/* Theme Toggle */}
-              <EnhancedThemeToggle />
-
-              {/* User Menu */}
-              <div className="hidden md:block relative" ref={userMenuRef}>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setActiveDropdown(activeDropdown === 'user' ? 'none' : 'user')}
-                  className="flex items-center space-x-2 p-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:from-indigo-600 hover:to-purple-600 transition-all shadow-lg"
-                >
-                  <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                    <FaUser className="text-sm" />
-                  </div>
-                  <FaChevronDown className={`text-xs transition-transform ${activeDropdown === 'user' ? 'rotate-180' : ''}`} />
-                </motion.button>
-
-                <AnimatePresence>
-                  {/* Render user menu only if activeDropdown is 'user' */}
-                  {activeDropdown === 'user' && (
-                    <motion.div
-                      variants={dropdownVariants}
-                      initial="closed"
-                      animate="open"
-                      exit="closed"
-                      className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden"
-                    >
-                      <div className="p-4 border-b border-gray-100 dark:border-gray-700">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center">
-                            <FaUser className="text-white" />
-                          </div>
-                          <div>
-                            <p className="font-semibold text-gray-900 dark:text-white">John Doe</p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Premium Member</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <motion.div variants={itemStaggerVariants} initial="closed" animate="open" className="p-2">
-                        {userMenuItems.map((item) => (
-                          <motion.div key={item.name} variants={itemVariants}>
-                            <Link
-                              to={item.path}
-                              onClick={() => setActiveDropdown('none')} // Close dropdown on link click
-                              className={`flex items-center px-3 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all group ${
-                                item.premium ? 'bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20' : ''
-                              }`}
-                            >
-                              <item.icon className={`mr-3 ${item.premium ? 'text-yellow-500' : 'text-gray-400 group-hover:text-indigo-500'}`} />
-                              <span className={`font-medium ${item.premium ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-700 dark:text-gray-300'}`}>
-                                {item.name}
-                              </span>
-                              {item.premium && <FaCrown className="ml-auto text-yellow-500 text-sm" />}
-                            </Link>
-                          </motion.div>
-                        ))}
-
-                        <div className="border-t border-gray-100 dark:border-gray-700 mt-2 pt-2">
-                          <motion.button
-                            variants={itemVariants}
-                            // Assuming logout also closes the dropdown
-                            onClick={() => setActiveDropdown('none')}
-                            className="flex items-center w-full px-3 py-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all text-red-600 dark:text-red-400"
-                          >
-                            <FaSignOutAlt className="mr-3" />
-                            <span className="font-medium">Déconnexion</span>
-                          </motion.button>
-                        </div>
-                      </motion.div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
               {/* Mobile Menu Button */}
               <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -508,7 +492,7 @@ const ProfessionalNavbar = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+              className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40 pointer-events-none"
               onClick={() => setMobileMenuOpen(false)}
             />
             <motion.div
@@ -516,7 +500,7 @@ const ProfessionalNavbar = () => {
               initial="closed"
               animate="open"
               exit="closed"
-              className="lg:hidden fixed top-0 right-0 w-80 h-full bg-white dark:bg-gray-900 z-50 shadow-2xl"
+              className="lg:hidden fixed top-0 right-0 w-80 h-full bg-white dark:bg-gray-900 z-50 shadow-2xl pointer-events-auto overflow-y-auto"
             >
               <div className="p-6">
                 <div className="flex justify-between items-center mb-8">

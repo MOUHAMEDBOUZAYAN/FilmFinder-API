@@ -362,9 +362,9 @@ const ProfessionalSearch = ({ placeholder = "Rechercher des films, acteurs, réa
               }}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
-              className={`p-2 rounded-full transition-all ${
+              className={`ml-2 p-2 rounded-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 transition-all ${
                 activeDropdown === 'search' 
-                  ? 'bg-indigo-500 text-white' 
+                  ? 'bg-indigo-500 text-white border-indigo-500' 
                   : 'text-gray-400 hover:text-indigo-500 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
